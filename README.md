@@ -47,7 +47,7 @@ git clone https://github.com/supermem613/sharepoint-api-skill
 npm install
 
 # 2. Authenticate (first run opens Edge for login, then it's instant)
-source .claude/skills/sharepoint-api/scripts/sp-auth-wrapper.sh contoso.sharepoint.com
+source .claude/skills/sharepoint-api/scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite
 
 # 3. Ask your AI agent anything
 #    "List all documents on this SharePoint site"

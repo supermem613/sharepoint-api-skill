@@ -38,8 +38,8 @@ source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/teams/MyTeam
 ### Login / Logout
 
 ```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com --login   # Force re-login
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com --logout  # Clear saved profile + auth
+source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --login   # Force re-login
+source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --logout  # Clear saved profile + auth
 ```
 
 > **Note:** For dogfood/test tenants (e.g., `contoso.sharepoint-df.com`), use the full hostname.
@@ -50,8 +50,8 @@ All scripts are in `scripts/` and run on Node.js (18+) — cross-platform, zero 
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `sp-auth-wrapper.sh` / `.ps1` | Authenticate via Playwright | `source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com` |
-| `sp-auth.js` | Core auth engine (called by wrappers) | `node scripts/sp-auth.js contoso.sharepoint.com` |
+| `sp-auth-wrapper.sh` / `.ps1` | Authenticate via Playwright | `source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite` |
+| `sp-auth.js` | Core auth engine (called by wrappers) | `node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite` |
 | `sp-get.js` | SharePoint REST GET | `node scripts/sp-get.js "/_api/web/lists"` |
 | `sp-post.js` | SharePoint REST POST/PATCH/DELETE | `node scripts/sp-post.js "/_api/web/lists" '{"Title":"My List"}'` |
 | `graph-get.js` | Microsoft Graph GET | `node scripts/graph-get.js "/v1.0/me"` |

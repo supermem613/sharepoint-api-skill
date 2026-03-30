@@ -9,18 +9,13 @@ You are evaluating the **sharepoint-api-skill**. This instruction tells you how 
    npm install
    ```
 
-2. **Authenticate** to the target SharePoint **site** (not just the tenant — a specific site URL):
+2. **Authenticate** to the target SharePoint site:
    ```bash
-   source .claude/skills/sharepoint-api/scripts/sp-auth-wrapper.sh <tenant>.sharepoint.com
-   ```
-   Then set `SP_SITE` to the specific site you want to test against:
-   ```bash
-   export SP_SITE="https://<tenant>.sharepoint.com/sites/<sitename>"
+   source .claude/skills/sharepoint-api/scripts/sp-auth-wrapper.sh <tenant>.sharepoint.com/sites/<sitename>
    ```
    For example:
    ```bash
-   source .claude/skills/sharepoint-api/scripts/sp-auth-wrapper.sh contoso.sharepoint.com
-   export SP_SITE="https://contoso.sharepoint.com/sites/eval-test"
+   source .claude/skills/sharepoint-api/scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/eval-test
    ```
 
 3. **Verify** auth works against the target site:

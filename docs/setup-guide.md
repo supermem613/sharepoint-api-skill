@@ -20,16 +20,16 @@ This installs Playwright, which is used for browser-based authentication.
 **Bash:**
 
 ```bash
-source .claude/skills/sharepoint-api/scripts/sp-auth-wrapper.sh contoso.sharepoint.com
+source .claude/skills/sharepoint-api/scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite
 ```
 
 **PowerShell:**
 
 ```powershell
-. .claude\skills\sharepoint-api\scripts\sp-auth-wrapper.ps1 contoso.sharepoint.com
+. .claude\skills\sharepoint-api\scripts\sp-auth-wrapper.ps1 contoso.sharepoint.com/sites/mysite
 ```
 
-Replace `contoso.sharepoint.com` with your actual tenant domain.
+Replace `contoso.sharepoint.com/sites/mysite` with your actual site URL.
 
 On first run, Edge opens a visible browser window. Sign in with your Microsoft account. Once login completes, the browser closes automatically and your session is saved to a local profile.
 
@@ -42,7 +42,7 @@ Run the same auth command. It launches Edge headlessly (no visible window), read
 | Variable | Description |
 |----------|-------------|
 | `SP_COOKIES` | FedAuth + rtFa cookies for SharePoint REST API calls |
-| `SP_SITE` | Base URL (e.g., `https://contoso.sharepoint.com`) |
+| `SP_SITE` | Full site URL (e.g., `https://contoso.sharepoint.com/sites/mysite`) |
 
 ### Verify
 
@@ -64,12 +64,12 @@ If your session expires or you need to switch accounts:
 
 **Bash:**
 ```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com --login
+source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --login
 ```
 
 **PowerShell:**
 ```powershell
-. .\scripts\sp-auth-wrapper.ps1 contoso.sharepoint.com -Login
+. .\scripts\sp-auth-wrapper.ps1 contoso.sharepoint.com/sites/mysite -Login
 ```
 
 ### Clear Saved Profile
@@ -78,12 +78,12 @@ To delete the cached browser profile entirely:
 
 **Bash:**
 ```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com --logout
+source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --logout
 ```
 
 **PowerShell:**
 ```powershell
-. .\scripts\sp-auth-wrapper.ps1 contoso.sharepoint.com -Logout
+. .\scripts\sp-auth-wrapper.ps1 contoso.sharepoint.com/sites/mysite -Logout
 ```
 
 The profile is stored at `~/.sharepoint-api-skill/browser-profile/`. The `--logout` flag deletes this directory.
@@ -101,12 +101,12 @@ Playwright requires Microsoft Edge to be installed. Install Edge from [microsoft
 Your saved session may have expired. Force a fresh login:
 
 ```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com --login
+source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --login
 ```
 
 ### "No cookies found for tenant"
 
-1. Make sure the tenant hostname is correct (e.g., `contoso.sharepoint.com`, not `contoso.com`).
+1. Make sure the site URL is correct (e.g., `contoso.sharepoint.com/sites/mysite`, not just `contoso.com`).
 2. Try `--login` to force an interactive login.
 3. If using a dogfood tenant, use the full hostname (e.g., `contoso.sharepoint-df.com`).
 
@@ -121,8 +121,8 @@ You do not have permission to the requested resource. Check with your SharePoint
 ### Clear profile and start fresh
 
 ```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com --logout
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com --login
+source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --logout
+source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --login
 ```
 
 ### Cookie Expiration
