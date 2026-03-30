@@ -34,19 +34,16 @@ Reference for all list-related SharePoint REST API operations.
 
 ```bash
 # Get items with selected fields
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$select=Title,Id,Status&\$top=100"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$select=Title,Id,Status&\$top=100"
 
 # Get a specific item by ID (get_item_by_identifier)
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items({itemId})"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items({itemId})"
 
 # Get item metadata (get_list_item_metadata)
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items({itemId})?\$select=*,Author/Title,Editor/Title&\$expand=Author,Editor"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items({itemId})?\$select=*,Author/Title,Editor/Title&\$expand=Author,Editor"
 ```
 
-```powershell
-# PowerShell equivalents
-.\sp-get.ps1 "/_api/web/lists(guid'{listId}')/items?`$select=Title,Id,Status&`$top=100"
-.\sp-get.ps1 "/_api/web/lists(guid'{listId}')/items({itemId})"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items({itemId})"
 ```
 
 ### Pagination
@@ -55,16 +52,16 @@ Use `$top` and `$skiptoken` for paging through large result sets:
 
 ```bash
 # First page
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$top=100"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$top=100"
 
 # Subsequent pages — use the odata.nextLink URL from the previous response
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$top=100&\$skiptoken=Paged%3DTRUE%26p_ID%3D100"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$top=100&\$skiptoken=Paged%3DTRUE%26p_ID%3D100"
 ```
 
 ### Expanding lookup fields
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$select=Title,Category/Title&\$expand=Category"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$select=Title,Category/Title&\$expand=Category"
 ```
 
 ### CAML queries for complex filtering (`find_items`)
@@ -72,7 +69,7 @@ Use `$top` and `$skiptoken` for paging through large result sets:
 Use `POST` to `GetItems` when OData `$filter` is insufficient:
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/GetItems" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/GetItems" '{
   "query": {
     "__metadata": {"type": "SP.CamlQuery"},
     "ViewXml": "<View><Query><Where><And><Geq><FieldRef Name=\"Created\" /><Value Type=\"DateTime\">2024-01-01T00:00:00Z</Value></Geq><Eq><FieldRef Name=\"Status\" /><Value Type=\"Choice\">Active</Value></Eq></And></Where><OrderBy><FieldRef Name=\"Modified\" Ascending=\"FALSE\" /></OrderBy></Query><RowLimit>50</RowLimit></View>"
@@ -87,7 +84,7 @@ Use `POST` to `GetItems` when OData `$filter` is insufficient:
 ### Single item (`create_list_items`)
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/items" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items" '{
   "__metadata": {"type": "SP.Data.{ListName}ListItem"},
   "Title": "New Item",
   "Status": "Active",
@@ -96,20 +93,13 @@ Use `POST` to `GetItems` when OData `$filter` is insufficient:
 }'
 ```
 
-```powershell
-.\sp-post.ps1 "/_api/web/lists(guid'{listId}')/items" '{
-  "__metadata": {"type": "SP.Data.{ListName}ListItem"},
-  "Title": "New Item",
-  "Status": "Active"
-}'
-```
 
 ### Determining the correct `__metadata.type`
 
 The entity type name follows the pattern `SP.Data.{InternalListName}ListItem`. To find it:
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')?\$select=ListItemEntityTypeFullName"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')?\$select=ListItemEntityTypeFullName"
 ```
 
 The response `ListItemEntityTypeFullName` value is the string to use.
@@ -136,19 +126,13 @@ The response `ListItemEntityTypeFullName` value is the string to use.
 ### Single item update (`update_list_items`)
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/items({itemId})" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})" '{
   "__metadata": {"type": "SP.Data.{ListName}ListItem"},
   "Title": "Updated Title",
   "Status": "Complete"
 }' PATCH
 ```
 
-```powershell
-.\sp-post.ps1 "/_api/web/lists(guid'{listId}')/items({itemId})" '{
-  "__metadata": {"type": "SP.Data.{ListName}ListItem"},
-  "Title": "Updated Title"
-}' PATCH
-```
 
 > The helper scripts send `IF-MATCH: *` by default for PATCH requests. To use a
 > specific ETag for concurrency control, pass the etag value from the item's
@@ -161,7 +145,7 @@ For updating multiple items, use the `$batch` endpoint:
 ```bash
 # Build a batch request body — each changeset updates one item.
 # The batch boundary and changeset structure are handled by the helper:
-./sp-post.sh "/_api/\$batch" @batch-payload.txt
+node scripts/sp-post.js "/_api/\$batch" @batch-payload.txt
 ```
 
 Batch payloads follow the OData multipart format. Each changeset contains a
@@ -174,17 +158,14 @@ PATCH request for a single item. Limit batches to **100 operations** per request
 ### Single delete (`delete_list_item`)
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/items({itemId})" '' DELETE
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})" '' DELETE
 ```
 
-```powershell
-.\sp-post.ps1 "/_api/web/lists(guid'{listId}')/items({itemId})" '' DELETE
-```
 
 ### Recycle instead of permanent delete
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/items({itemId})/recycle" ''
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})/recycle" ''
 ```
 
 ### Batch delete (`delete_items`)
@@ -194,7 +175,7 @@ Use the `$batch` endpoint with DELETE operations, or loop recycle calls:
 ```bash
 # Recycle multiple items by ID
 for id in 1 2 3 4; do
-  ./sp-post.sh "/_api/web/lists(guid'{listId}')/items(${id})/recycle" ''
+  node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items(${id})/recycle" ''
 done
 ```
 
@@ -206,33 +187,31 @@ done
 
 ```bash
 # Text equals
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$filter=Title eq 'Project Alpha'"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=Title eq 'Project Alpha'"
 
 # Number comparison
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$filter=Amount gt 100"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=Amount gt 100"
 
 # Date range
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$filter=DueDate ge datetime'2024-01-01T00:00:00Z' and DueDate le datetime'2024-12-31T23:59:59Z'"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=DueDate ge datetime'2024-01-01T00:00:00Z' and DueDate le datetime'2024-12-31T23:59:59Z'"
 
 # Choice field
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$filter=Status eq 'Active'"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=Status eq 'Active'"
 
 # Lookup field (filter on ID)
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$filter=CategoryId eq 3"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=CategoryId eq 3"
 
 # Substring match
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$filter=substringof('search term',Title)"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=substringof('search term',Title)"
 
 # Starts with
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$filter=startswith(Title,'Project')"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=startswith(Title,'Project')"
 
 # Combined filters
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$filter=Status eq 'Active' and Priority le 2&\$orderby=DueDate asc"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=Status eq 'Active' and Priority le 2&\$orderby=DueDate asc"
 ```
 
-```powershell
-.\sp-get.ps1 "/_api/web/lists(guid'{listId}')/items?`$filter=Title eq 'Project Alpha'"
-.\sp-get.ps1 "/_api/web/lists(guid'{listId}')/items?`$filter=Status eq 'Active' and Priority le 2&`$orderby=DueDate asc"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?`$filter=Status eq 'Active' and Priority le 2&`$orderby=DueDate asc"
 ```
 
 ### CAML query for complex scenarios
@@ -247,7 +226,7 @@ See [CAML queries](#caml-queries-for-complex-filtering-find_items) above.
 
 ```bash
 # Create a custom list (template 100)
-./sp-post.sh "/_api/web/lists" '{
+node scripts/sp-post.js "/_api/web/lists" '{
   "__metadata": {"type": "SP.List"},
   "Title": "My Custom List",
   "Description": "A project tracking list",
@@ -256,7 +235,7 @@ See [CAML queries](#caml-queries-for-complex-filtering-find_items) above.
 }'
 
 # Create a document library (template 101)
-./sp-post.sh "/_api/web/lists" '{
+node scripts/sp-post.js "/_api/web/lists" '{
   "__metadata": {"type": "SP.List"},
   "Title": "Project Documents",
   "Description": "Document library for project files",
@@ -264,13 +243,6 @@ See [CAML queries](#caml-queries-for-complex-filtering-find_items) above.
 }'
 ```
 
-```powershell
-.\sp-post.ps1 "/_api/web/lists" '{
-  "__metadata": {"type": "SP.List"},
-  "Title": "My Custom List",
-  "BaseTemplate": 100
-}'
-```
 
 Common `BaseTemplate` values:
 
@@ -287,7 +259,7 @@ Common `BaseTemplate` values:
 ### Update list properties
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')" '{
   "__metadata": {"type": "SP.List"},
   "Title": "Renamed List",
   "Description": "Updated description"
@@ -297,12 +269,9 @@ Common `BaseTemplate` values:
 ### Delete a list (`delete_list`)
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')" '' DELETE
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')" '' DELETE
 ```
 
-```powershell
-.\sp-post.ps1 "/_api/web/lists(guid'{listId}')" '' DELETE
-```
 
 ---
 
@@ -312,21 +281,18 @@ Common `BaseTemplate` values:
 
 ```bash
 # Non-hidden fields only
-./sp-get.sh "/_api/web/lists(guid'{listId}')/fields?\$filter=Hidden eq false"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$filter=Hidden eq false"
 
 # All fields with specific properties
-./sp-get.sh "/_api/web/lists(guid'{listId}')/fields?\$select=Title,InternalName,TypeAsString,Required,ReadOnlyField&\$filter=Hidden eq false"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$select=Title,InternalName,TypeAsString,Required,ReadOnlyField&\$filter=Hidden eq false"
 ```
 
-```powershell
-.\sp-get.ps1 "/_api/web/lists(guid'{listId}')/fields?`$filter=Hidden eq false"
-```
 
 ### Add a field
 
 ```bash
 # Text field
-./sp-post.sh "/_api/web/lists(guid'{listId}')/fields" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/fields" '{
   "__metadata": {"type": "SP.Field"},
   "Title": "ProjectCode",
   "FieldTypeKind": 2,
@@ -334,7 +300,7 @@ Common `BaseTemplate` values:
 }'
 
 # Choice field
-./sp-post.sh "/_api/web/lists(guid'{listId}')/fields" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/fields" '{
   "__metadata": {"type": "SP.FieldChoice"},
   "Title": "Priority",
   "FieldTypeKind": 6,
@@ -342,7 +308,7 @@ Common `BaseTemplate` values:
 }'
 
 # Number field
-./sp-post.sh "/_api/web/lists(guid'{listId}')/fields" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/fields" '{
   "__metadata": {"type": "SP.FieldNumber"},
   "Title": "Budget",
   "FieldTypeKind": 9,
@@ -369,12 +335,9 @@ Field type kinds:
 ### Delete a field (`delete_field`)
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/fields/getbytitle('{fieldName}')" '' DELETE
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/fields/getbytitle('{fieldName}')" '' DELETE
 ```
 
-```powershell
-.\sp-post.ps1 "/_api/web/lists(guid'{listId}')/fields/getbytitle('{fieldName}')" '' DELETE
-```
 
 ---
 
@@ -383,26 +346,23 @@ Field type kinds:
 ### Get all views (`get_views_of_list`)
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')/views"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/views"
 ```
 
 ### Get view details (`get_view_definition`)
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')"
 
 # Include view fields
-./sp-get.sh "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')/viewfields"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')/viewfields"
 ```
 
-```powershell
-.\sp-get.ps1 "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')"
-```
 
 ### Create a view
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/views" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/views" '{
   "__metadata": {"type": "SP.View"},
   "Title": "Active Items",
   "ViewQuery": "<Where><Eq><FieldRef Name=\"Status\" /><Value Type=\"Choice\">Active</Value></Eq></Where>",
@@ -415,7 +375,7 @@ Field type kinds:
 ### Update a view
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')" '{
   "__metadata": {"type": "SP.View"},
   "Title": "Renamed View",
   "RowLimit": 100
@@ -425,13 +385,13 @@ Field type kinds:
 ### Delete a view (`delete_view`)
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')" '' DELETE
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')" '' DELETE
 ```
 
 ### Apply view formatting (`apply_view_formatting`)
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')/SetViewXml" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')/SetViewXml" '{
   "viewXml": "<View><Query><OrderBy><FieldRef Name=\"Modified\" Ascending=\"FALSE\" /></OrderBy></Query><ViewFields><FieldRef Name=\"Title\" /><FieldRef Name=\"Status\" /><FieldRef Name=\"DueDate\" /></ViewFields><RowLimit>30</RowLimit></View>"
 }'
 ```
@@ -441,7 +401,7 @@ Field type kinds:
 Column formatting uses JSON to customize how a field renders:
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/fields/getbytitle('{fieldName}')" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/fields/getbytitle('{fieldName}')" '{
   "__metadata": {"type": "SP.Field"},
   "CustomFormatter": "{\"$schema\":\"https://developer.microsoft.com/json-schemas/sp/v2/column-formatting.schema.json\",\"elmType\":\"div\",\"style\":{\"background-color\":\"=if(@currentField == '\''High'\'', '\''#f8d7da'\'', if(@currentField == '\''Medium'\'', '\''#fff3cd'\'', '\''#d4edda'\''))\"},\"txtContent\":\"@currentField\"}"
 }' PATCH
@@ -454,22 +414,16 @@ Column formatting uses JSON to customize how a field renders:
 ### Get version history (`list_item_versions`)
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items({itemId})/versions"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items({itemId})/versions"
 ```
 
-```powershell
-.\sp-get.ps1 "/_api/web/lists(guid'{listId}')/items({itemId})/versions"
-```
 
 ### Restore a version (`restore_item_version`)
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/items({itemId})/versions({versionId})/restoreByLabel" ''
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})/versions({versionId})/restoreByLabel" ''
 ```
 
-```powershell
-.\sp-post.ps1 "/_api/web/lists(guid'{listId}')/items({itemId})/versions({versionId})/restoreByLabel" ''
-```
 
 ---
 
@@ -478,23 +432,23 @@ Column formatting uses JSON to customize how a field renders:
 ### Get list by title instead of GUID
 
 ```bash
-./sp-get.sh "/_api/web/lists/getbytitle('My List')/items"
+node scripts/sp-get.js "/_api/web/lists/getbytitle('My List')/items"
 ```
 
 ### Check if a list exists
 
 ```bash
-./sp-get.sh "/_api/web/lists/getbytitle('My List')?\$select=Id,Title"
+node scripts/sp-get.js "/_api/web/lists/getbytitle('My List')?\$select=Id,Title"
 ```
 
 ### Get list item count
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')?\$select=ItemCount"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')?\$select=ItemCount"
 ```
 
 ### Combine $select, $expand, $filter, $orderby, $top
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$select=Title,Status,AssignedTo/Title,Category/Title&\$expand=AssignedTo,Category&\$filter=Status eq 'Active'&\$orderby=DueDate asc&\$top=50"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$select=Title,Status,AssignedTo/Title,Category/Title&\$expand=AssignedTo,Category&\$filter=Status eq 'Active'&\$orderby=DueDate asc&\$top=50"
 ```

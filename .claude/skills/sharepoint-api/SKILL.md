@@ -16,7 +16,7 @@ Interact with any SharePoint Online site directly via SharePoint REST API and Mi
 
 ### Prerequisites
 
-- **Node.js** (18+) — for the auth script
+- **Node.js** (18+) — for all scripts (auth, REST helpers)
 - **Microsoft Edge** — for Playwright persistent context auth (no app registration needed)
 - Run `npm install` in the skill directory (one-time, installs Playwright)
 
@@ -47,72 +47,73 @@ source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com --logout  # Clear sav
 
 ## Helper Scripts
 
-All scripts are in `scripts/`. Each has a `.sh` (bash) and `.ps1` (PowerShell) variant.
+All scripts are in `scripts/` and run on Node.js (18+) — cross-platform, zero npm dependencies.
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `sp-auth-wrapper` | Authenticate via Playwright | `source ./sp-auth-wrapper.sh contoso.sharepoint.com` |
-| `sp-get` | SharePoint REST GET | `./sp-get.sh "/_api/web/lists"` |
-| `sp-post` | SharePoint REST POST/PATCH/DELETE | `./sp-post.sh "/_api/web/lists" '{"Title":"My List"}'` |
-| `graph-get` | Microsoft Graph GET | `./graph-get.sh "/v1.0/me"` |
-| `graph-post` | Microsoft Graph POST/PATCH/DELETE | `./graph-post.sh "/v1.0/me/sendMail" '{...}'` |
+| `sp-auth-wrapper.sh` / `.ps1` | Authenticate via Playwright | `source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com` |
+| `sp-auth.js` | Core auth engine (called by wrappers) | `node scripts/sp-auth.js contoso.sharepoint.com` |
+| `sp-get.js` | SharePoint REST GET | `node scripts/sp-get.js "/_api/web/lists"` |
+| `sp-post.js` | SharePoint REST POST/PATCH/DELETE | `node scripts/sp-post.js "/_api/web/lists" '{"Title":"My List"}'` |
+| `graph-get.js` | Microsoft Graph GET | `node scripts/graph-get.js "/v1.0/me"` |
+| `graph-post.js` | Microsoft Graph POST/PATCH/DELETE | `node scripts/graph-post.js "/v1.0/me/sendMail" '{...}'` |
 
-`sp-get` and `sp-post` use the `SP_COOKIES` set by `sp-auth-wrapper`. They also support `SP_TOKEN` (bearer) if set.
+`sp-get.js` and `sp-post.js` use the `SP_COOKIES` set by `sp-auth-wrapper`. They also support `SP_TOKEN` (bearer) if set.
 
 ## Quick Reference — 10 Most Common Operations
 
 ### 1. List all lists and libraries
 ```bash
-./sp-get.sh "/_api/web/lists?\$filter=Hidden eq false&\$select=Id,Title,BaseTemplate,ItemCount"
+node scripts/sp-get.js "/_api/web/lists?\$filter=Hidden eq false&\$select=Id,Title,BaseTemplate,ItemCount"
 ```
 
 ### 2. Get items from a list
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$select=Title,Id,Status&\$top=100"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$select=Title,Id,Status&\$top=100"
 ```
 
 ### 3. Create a list item
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/items" \
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items" \
   '{"__metadata":{"type":"SP.Data.{ListName}ListItem"},"Title":"New item","Status":"Active"}'
 ```
 
 ### 4. Update a list item
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/items({itemId})" \
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})" \
   '{"Title":"Updated title"}' PATCH
 ```
 
 ### 5. Delete a list item
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/items({itemId})" '' DELETE
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})" '' DELETE
 ```
 
 ### 6. Read a file
 ```bash
-./sp-get.sh "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/\$value"
+node scripts/sp-get.js "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/\$value"
 ```
 
 ### 7. Upload a file
 ```bash
-./sp-post.sh "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Files/add(url='newfile.txt',overwrite=true)" \
+node scripts/sp-post.js "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Files/add(url='newfile.txt',overwrite=true)" \
   "File content here"
 ```
 
 ### 8. Search for files (Graph)
 ```bash
-./graph-post.sh "/v1.0/search/query" \
+node scripts/graph-post.js "/v1.0/search/query" \
   '{"requests":[{"entityTypes":["driveItem"],"query":{"queryString":"budget report"},"size":10}]}'
 ```
 
 ### 9. Get current user
 ```bash
-./sp-get.sh "/_api/web/currentuser?\$select=Id,Title,Email"
+node scripts/sp-get.js "/_api/web/currentuser?\$select=Id,Title,Email"
 ```
 
 ### 10. Get site info
 ```bash
-./sp-get.sh "/_api/web?\$select=Title,Url,Description"
+node scripts/sp-get.js "/_api/web?\$select=Title,Url,Description"
 ```
 
 ## When to Use SharePoint REST vs Microsoft Graph

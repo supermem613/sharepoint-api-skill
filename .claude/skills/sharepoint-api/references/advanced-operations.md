@@ -38,37 +38,23 @@ Advanced SharePoint operations covering rules, workflows, recycle bin, approvals
 ### Get recycle bin items
 
 ```bash
-./sp-get.sh "/_api/web/recyclebin?\$select=Title,DirName,DeletedByEmail,DeletedDate,Id,ItemType&\$orderby=DeletedDate desc&\$top=50"
+node scripts/sp-get.js "/_api/web/recyclebin?\$select=Title,DirName,DeletedByEmail,DeletedDate,Id,ItemType&\$orderby=DeletedDate desc&\$top=50"
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/recyclebin?`$select=Title,DirName,DeletedByEmail,DeletedDate,Id,ItemType&`$orderby=DeletedDate desc&`$top=50"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Restore items from recycle bin
 
 ```bash
-./sp-post.sh "/_api/web/recyclebin/restorebyids" '{"ids":["guid1","guid2"]}'
+node scripts/sp-post.js "/_api/web/recyclebin/restorebyids" '{"ids":["guid1","guid2"]}'
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/recyclebin/restorebyids"
-$body = @{ ids = @("guid1", "guid2") } | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $body -ContentType "application/json"
-```
 
 ### Delete permanently from recycle bin
 
 ```bash
-./sp-post.sh "/_api/web/recyclebin/deletebyids" '{"ids":["guid1"]}'
+node scripts/sp-post.js "/_api/web/recyclebin/deletebyids" '{"ids":["guid1"]}'
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/recyclebin/deletebyids"
-$body = @{ ids = @("guid1") } | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $body -ContentType "application/json"
-```
 
 ### Key notes
 
@@ -84,24 +70,16 @@ Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $body -ContentT
 ### Get restorable lists (from recycle bin)
 
 ```bash
-./sp-get.sh "/_api/web/recyclebin?\$filter=ItemType eq 3&\$select=Title,Id,DeletedDate,DeletedByEmail,DirName"
+node scripts/sp-get.js "/_api/web/recyclebin?\$filter=ItemType eq 3&\$select=Title,Id,DeletedDate,DeletedByEmail,DirName"
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/recyclebin?`$filter=ItemType eq 3&`$select=Title,Id,DeletedDate,DeletedByEmail,DirName"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Restore a deleted list
 
 ```bash
-./sp-post.sh "/_api/web/recyclebin('guid')/restore" ''
+node scripts/sp-post.js "/_api/web/recyclebin('guid')/restore" ''
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/recyclebin('$listRecycleBinId')/restore"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post
-```
 
 ### Key notes
 
@@ -118,18 +96,14 @@ SharePoint list rules provide simple automation for email notifications and othe
 ### Get rules for a list
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')/SPListRules"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/SPListRules"
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')/SPListRules"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Create a rule
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/SPListRules" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/SPListRules" '{
   "Title": "Notify on new items",
   "TriggerType": "ItemAdded",
   "ActionType": "EmailNotification",
@@ -138,43 +112,23 @@ Invoke-RestMethod -Uri $url -Headers $headers -Method Get
 }'
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')/SPListRules"
-$body = @{
-    Title       = "Notify on new items"
-    TriggerType = "ItemAdded"
-    ActionType  = "EmailNotification"
-    Condition   = ""
-    IsActive    = $true
-} | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $body -ContentType "application/json"
-```
 
 ### Update a rule
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/SPListRules({ruleId})" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/SPListRules({ruleId})" '{
   "Title": "Updated rule name",
   "IsActive": false
 }' PATCH
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')/SPListRules($ruleId)"
-$body = @{ Title = "Updated rule name"; IsActive = $false } | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Headers $headers -Method Patch -Body $body -ContentType "application/json"
-```
 
 ### Delete a rule
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/SPListRules({ruleId})" '' DELETE
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/SPListRules({ruleId})" '' DELETE
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')/SPListRules($ruleId)"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Delete
-```
 
 ### Trigger types
 
@@ -199,13 +153,9 @@ Full Power Automate management requires the Power Automate Management API, which
 ### List subscriptions (webhooks) associated with a list
 
 ```bash
-./graph-get.sh "/v1.0/sites/{siteId}/lists/{listId}/subscriptions"
+node scripts/graph-get.js "/v1.0/sites/{siteId}/lists/{listId}/subscriptions"
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/sites/$siteId/lists/$listId/subscriptions"
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Get
-```
 
 ### Key notes
 
@@ -222,36 +172,23 @@ Modern approvals in SharePoint are powered by Power Automate. Configuration is d
 ### Check if content approval is enabled on a list
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')?&\$select=EnableModeration,Title"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')?&\$select=EnableModeration,Title"
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')?`$select=EnableModeration,Title"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Check for moderation status field
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')/fields?\$filter=InternalName eq '_ModerationStatus'&\$select=Title,InternalName"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$filter=InternalName eq '_ModerationStatus'&\$select=Title,InternalName"
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')/fields?`$filter=InternalName eq '_ModerationStatus'&`$select=Title,InternalName"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Enable content approval on a list
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')" '{"EnableModeration": true}' PATCH
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')" '{"EnableModeration": true}' PATCH
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')"
-$body = @{ EnableModeration = $true } | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Headers $headers -Method Patch -Body $body -ContentType "application/json"
-```
 
 ### Key notes
 
@@ -268,18 +205,14 @@ Quicksteps are pre-configured actions that list users can apply to items with a 
 ### Get quicksteps for a list
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')/QuickSteps"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/QuickSteps"
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')/QuickSteps"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Create or update a quickstep
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/QuickSteps" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/QuickSteps" '{
   "Title": "Mark as Reviewed",
   "Actions": [
     {
@@ -290,28 +223,13 @@ Invoke-RestMethod -Uri $url -Headers $headers -Method Get
 }'
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')/QuickSteps"
-$body = @{
-    Title   = "Mark as Reviewed"
-    Actions = @(@{
-        FieldName = "Status"
-        Value     = "Reviewed"
-    })
-} | ConvertTo-Json -Depth 3
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $body -ContentType "application/json"
-```
 
 ### Delete a quickstep
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/QuickSteps({quickstepId})" '' DELETE
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/QuickSteps({quickstepId})" '' DELETE
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')/QuickSteps($quickstepId)"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Delete
-```
 
 ### Key notes
 
@@ -326,66 +244,41 @@ Invoke-RestMethod -Uri $url -Headers $headers -Method Delete
 ### Get quick launch navigation nodes
 
 ```bash
-./sp-get.sh "/_api/web/navigation/quicklaunch?\$select=Title,Url,Id,IsExternal"
+node scripts/sp-get.js "/_api/web/navigation/quicklaunch?\$select=Title,Url,Id,IsExternal"
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/navigation/quicklaunch?`$select=Title,Url,Id,IsExternal"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Get top navigation bar nodes
 
 ```bash
-./sp-get.sh "/_api/web/navigation/topnavigationbar?\$select=Title,Url,Id"
+node scripts/sp-get.js "/_api/web/navigation/topnavigationbar?\$select=Title,Url,Id"
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/navigation/topnavigationbar?`$select=Title,Url,Id"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Reorder navigation nodes
 
 ```bash
-./sp-post.sh "/_api/web/navigation/quicklaunch({nodeId})/moveafterto({afterNodeId})" ''
+node scripts/sp-post.js "/_api/web/navigation/quicklaunch({nodeId})/moveafterto({afterNodeId})" ''
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/navigation/quicklaunch($nodeId)/moveafterto($afterNodeId)"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post
-```
 
 ### Add a navigation node
 
 ```bash
-./sp-post.sh "/_api/web/navigation/quicklaunch" '{
+node scripts/sp-post.js "/_api/web/navigation/quicklaunch" '{
   "Title": "Team Wiki",
   "Url": "/sites/mysite/SitePages/Wiki.aspx",
   "IsExternal": false
 }'
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/navigation/quicklaunch"
-$body = @{
-    Title      = "Team Wiki"
-    Url        = "/sites/mysite/SitePages/Wiki.aspx"
-    IsExternal = $false
-} | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $body -ContentType "application/json"
-```
 
 ### Delete a navigation node
 
 ```bash
-./sp-post.sh "/_api/web/navigation/quicklaunch({nodeId})" '' DELETE
+node scripts/sp-post.js "/_api/web/navigation/quicklaunch({nodeId})" '' DELETE
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/navigation/quicklaunch($nodeId)"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Delete
-```
 
 ### Key notes
 
@@ -401,35 +294,23 @@ Invoke-RestMethod -Uri $url -Headers $headers -Method Delete
 ### Get active site features
 
 ```bash
-./sp-get.sh "/_api/web/features?\$select=DisplayName,DefinitionId"
+node scripts/sp-get.js "/_api/web/features?\$select=DisplayName,DefinitionId"
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/features?`$select=DisplayName,DefinitionId"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Activate a feature
 
 ```bash
-./sp-post.sh "/_api/web/features/add('{featureGuid}',true)" ''
+node scripts/sp-post.js "/_api/web/features/add('{featureGuid}',true)" ''
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/features/add('$featureGuid',$true)"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post
-```
 
 ### Deactivate a feature
 
 ```bash
-./sp-post.sh "/_api/web/features/remove('{featureGuid}',true)" ''
+node scripts/sp-post.js "/_api/web/features/remove('{featureGuid}',true)" ''
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/features/remove('$featureGuid',$true)"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post
-```
 
 ### Key notes
 
@@ -444,44 +325,27 @@ Invoke-RestMethod -Uri $url -Headers $headers -Method Post
 ### Get compliance tag (retention label) on an item
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items({itemId})/ComplianceTag"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items({itemId})/ComplianceTag"
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')/items($itemId)/ComplianceTag"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Apply a retention label to an item
 
 ```bash
-./sp-post.sh "/_api/web/lists(guid'{listId}')/items({itemId})/SetComplianceTag" '{
+node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})/SetComplianceTag" '{
   "complianceTag": "RetentionLabel",
   "isTagPolicyHold": false,
   "isTagPolicyRecord": false
 }'
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')/items($itemId)/SetComplianceTag"
-$body = @{
-    complianceTag      = "RetentionLabel"
-    isTagPolicyHold    = $false
-    isTagPolicyRecord  = $false
-} | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $body -ContentType "application/json"
-```
 
 ### Get retirable documents (items with retention labels nearing expiry)
 
 ```bash
-./sp-get.sh "/_api/web/lists(guid'{listId}')/items?\$filter=OData__ComplianceTag ne null&\$select=Title,FileLeafRef,OData__ComplianceTag,OData__ComplianceTagWrittenTime"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=OData__ComplianceTag ne null&\$select=Title,FileLeafRef,OData__ComplianceTag,OData__ComplianceTagWrittenTime"
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/lists(guid'$listId')/items?`$filter=OData__ComplianceTag ne null&`$select=Title,FileLeafRef,OData__ComplianceTag,OData__ComplianceTagWrittenTime"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Key notes
 
@@ -499,35 +363,23 @@ SharePoint eSignature features are relatively new and use a combination of Graph
 ### List eSign requests
 
 ```bash
-./graph-get.sh "/v1.0/solutions/approval/operations?\$filter=requestType eq 'eSign'"
+node scripts/graph-get.js "/v1.0/solutions/approval/operations?\$filter=requestType eq 'eSign'"
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/solutions/approval/operations?`$filter=requestType eq 'eSign'"
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Get
-```
 
 ### Get eSign agreement details
 
 ```bash
-./graph-get.sh "/v1.0/solutions/approval/operations/{operationId}"
+node scripts/graph-get.js "/v1.0/solutions/approval/operations/{operationId}"
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/solutions/approval/operations/$operationId"
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Get
-```
 
 ### Cancel an eSign agreement
 
 ```bash
-./graph-post.sh "/v1.0/solutions/approval/operations/{operationId}/cancel" ''
+node scripts/graph-post.js "/v1.0/solutions/approval/operations/{operationId}/cancel" ''
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/solutions/approval/operations/$operationId/cancel"
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Post
-```
 
 ### Key notes
 
@@ -566,11 +418,6 @@ For operations that support batch processing (recycle bin restore/delete), pass 
 
 ```bash
 # Restore multiple items at once
-./sp-post.sh "/_api/web/recyclebin/restorebyids" '{"ids":["guid1","guid2","guid3"]}'
+node scripts/sp-post.js "/_api/web/recyclebin/restorebyids" '{"ids":["guid1","guid2","guid3"]}'
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/recyclebin/restorebyids"
-$body = @{ ids = @("guid1", "guid2", "guid3") } | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $body -ContentType "application/json"
-```

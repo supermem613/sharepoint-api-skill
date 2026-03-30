@@ -11,16 +11,11 @@ SharePoint REST **POST**, **PUT**, **DELETE**, and **PATCH** requests require a 
 ### Getting the digest
 
 ```bash
-# The sp-post.sh script handles this automatically.
+# The sp-post.js script handles this automatically.
 # For manual use:
-DIGEST=$(./sp-get.sh "/_api/contextinfo" | jq -r '.FormDigestValue')
+DIGEST=$(node scripts/sp-get.js "/_api/contextinfo" | jq -r '.FormDigestValue')
 ```
 
-```powershell
-# The sp-post.ps1 script handles this automatically.
-# For manual use:
-$digest = (./sp-post.ps1 -Endpoint "/_api/contextinfo" -Raw).FormDigestValue
-```
 
 ### Manual header usage
 
@@ -61,14 +56,11 @@ startswith(FieldName, 'value')
 ### Combining options
 
 ```bash
-./sp-get.sh "/_api/web/lists/getbytitle('Tasks')/items?\$select=Title,Id,Status&\$filter=Status eq 'Active'&\$top=50&\$orderby=Created desc"
+node scripts/sp-get.js "/_api/web/lists/getbytitle('Tasks')/items?\$select=Title,Id,Status&\$filter=Status eq 'Active'&\$top=50&\$orderby=Created desc"
 ```
 
-```powershell
-./sp-get.ps1 -Endpoint "/_api/web/lists/getbytitle('Tasks')/items?`$select=Title,Id,Status&`$filter=Status eq 'Active'&`$top=50&`$orderby=Created desc"
-```
 
-> **Tip:** In bash, escape `$` with `\$` inside double quotes. In PowerShell, use the backtick `` `$ ``.
+> **Tip:** In bash, escape `$` with `\$` inside double quotes.
 
 ---
 
@@ -82,7 +74,7 @@ Responses include `odata.nextLink` when more results are available.
 URL="/_api/web/lists/getbytitle('LargeList')/items?\$top=100"
 
 while [ -n "$URL" ]; do
-  RESPONSE=$(./sp-get.sh "$URL")
+  RESPONSE=$(node scripts/sp-get.js "$URL")
   echo "$RESPONSE" | jq '.value[]'
   URL=$(echo "$RESPONSE" | jq -r '.["odata.nextLink"] // empty')
 done
@@ -96,19 +88,13 @@ Responses include `@odata.nextLink` when more results are available.
 URL="/v1.0/sites/$SITE_ID/lists/$LIST_ID/items?\$top=100"
 
 while [ -n "$URL" ]; do
-  RESPONSE=$(./graph-get.sh "$URL")
+  RESPONSE=$(node scripts/graph-get.js "$URL")
   echo "$RESPONSE" | jq '.value[]'
   URL=$(echo "$RESPONSE" | jq -r '.["@odata.nextLink"] // empty')
 done
 ```
 
-```powershell
-$url = "/v1.0/sites/$siteId/lists/$listId/items?`$top=100"
-
 while ($url) {
-    $response = ./graph-get.ps1 -Endpoint $url
-    $response.value
-    $url = $response.'@odata.nextLink'
 }
 ```
 
@@ -185,17 +171,10 @@ When creating or updating items with `odata=verbose`, include the `__metadata.ty
 **Lists:** `SP.List`
 
 ```bash
-./sp-post.sh "/_api/web/lists/getbytitle('Tasks')/items" \
+node scripts/sp-post.js "/_api/web/lists/getbytitle('Tasks')/items" \
   '{"__metadata":{"type":"SP.Data.TasksListItem"},"Title":"New Task","Status":"Active"}'
 ```
 
-```powershell
-./sp-post.ps1 -Endpoint "/_api/web/lists/getbytitle('Tasks')/items" -Body @{
-    __metadata = @{ type = "SP.Data.TasksListItem" }
-    Title      = "New Task"
-    Status     = "Active"
-}
-```
 
 ---
 
@@ -274,47 +253,10 @@ CAML='<View>
   <RowLimit>50</RowLimit>
 </View>'
 
-./sp-post.sh "/_api/web/lists/getbytitle('Tasks')/GetItems" \
+node scripts/sp-post.js "/_api/web/lists/getbytitle('Tasks')/GetItems" \
   "{\"query\":{\"__metadata\":{\"type\":\"SP.CamlQuery\"},\"ViewXml\":\"$CAML\"}}"
 ```
 
-```powershell
-$caml = @"
-<View>
-  <ViewFields>
-    <FieldRef Name="Title" />
-    <FieldRef Name="Status" />
-    <FieldRef Name="Priority" />
-    <FieldRef Name="Created" />
-  </ViewFields>
-  <Query>
-    <Where>
-      <And>
-        <Eq>
-          <FieldRef Name="Status" />
-          <Value Type="Text">Active</Value>
-        </Eq>
-        <Gt>
-          <FieldRef Name="Priority" />
-          <Value Type="Number">2</Value>
-        </Gt>
-      </And>
-    </Where>
-    <OrderBy>
-      <FieldRef Name="Created" Ascending="FALSE" />
-    </OrderBy>
-  </Query>
-  <RowLimit>50</RowLimit>
-</View>
-"@
-
-./sp-post.ps1 -Endpoint "/_api/web/lists/getbytitle('Tasks')/GetItems" -Body @{
-    query = @{
-        __metadata = @{ type = "SP.CamlQuery" }
-        ViewXml    = $caml
-    }
-}
-```
 
 ---
 
@@ -329,12 +271,12 @@ POST /_api/$batch
 Content-Type: multipart/mixed; boundary=batch_id
 ```
 
-Each changeset in the multipart body contains individual requests. The `sp-post.sh` script does not handle batching — construct the multipart body manually or use a helper.
+Each changeset in the multipart body contains individual requests. The `node scripts/sp-post.js` script does not handle batching — construct the multipart body manually or use a helper.
 
 ### Graph API batch
 
 ```bash
-./graph-post.sh "/v1.0/\$batch" '{
+node scripts/graph-post.js "/v1.0/\$batch" '{
   "requests": [
     { "id": "1", "method": "GET",  "url": "/sites/'"$SITE_ID"'/lists" },
     { "id": "2", "method": "GET",  "url": "/sites/'"$SITE_ID"'/drive/root/children" },
@@ -346,8 +288,6 @@ Each changeset in the multipart body contains individual requests. The `sp-post.
 }'
 ```
 
-```powershell
-./graph-post.ps1 -Endpoint "/v1.0/`$batch" -Body @{
     requests = @(
         @{ id = "1"; method = "GET"; url = "/sites/$siteId/lists" }
         @{ id = "2"; method = "GET"; url = "/sites/$siteId/drive/root/children" }
@@ -397,21 +337,14 @@ Each changeset in the multipart body contains individual requests. The `sp-post.
 
 ```bash
 # Encode the path argument
-./sp-get.sh "/_api/web/getfilebyserverrelativeurl('/sites/my%20site/Shared%20Documents/report.docx')"
+node scripts/sp-get.js "/_api/web/getfilebyserverrelativeurl('/sites/my%20site/Shared%20Documents/report.docx')"
 ```
 
-```powershell
-./sp-get.ps1 -Endpoint "/_api/web/getfilebyserverrelativeurl('/sites/my%20site/Shared%20Documents/report.docx')"
-```
 
 ### Graph API
 
-Standard URL encoding applies. Use `[uri]::EscapeDataString()` in PowerShell or `jq -rn --arg v "$VAL" '$v | @uri'` in bash for dynamic values.
+Standard URL encoding applies. Use `jq -rn --arg v "$VAL" '$v | @uri'` in bash for dynamic values.
 
-```powershell
-$encoded = [uri]::EscapeDataString("file with spaces.docx")
-./graph-get.ps1 -Endpoint "/v1.0/sites/$siteId/drive/root:/$encoded"
-```
 
 ---
 
@@ -432,6 +365,6 @@ $encoded = [uri]::EscapeDataString("file with spaces.docx")
 
 ### Quick decision
 
-- **Need list item CRUD or CAML?** → SharePoint REST (`./sp-get.sh`, `./sp-post.sh`)
-- **Need files, search, or cross-service data?** → Graph API (`./graph-get.sh`, `./graph-post.sh`)
+- **Need list item CRUD or CAML?** → SharePoint REST (`node scripts/sp-get.js`, `node scripts/sp-post.js`)
+- **Need files, search, or cross-service data?** → Graph API (`node scripts/graph-get.js`, `node scripts/graph-post.js`)
 - **Both work?** → Prefer Graph for new development; it has broader long-term investment.

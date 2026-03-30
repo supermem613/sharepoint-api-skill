@@ -29,14 +29,9 @@ All file and folder operations available through the SharePoint REST API and Mic
 
 ```bash
 # Returns raw file content
-./sp-get.sh "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/\$value"
+node scripts/sp-get.js "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/\$value"
 ```
 
-```powershell
-# PowerShell equivalent
-$url = "$siteUrl/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/`$value"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Read file content via Graph API
 
@@ -44,16 +39,12 @@ Graph supports text extraction from Word, Excel, and PDF files.
 
 ```bash
 # Get raw file content
-./graph-get.sh "/v1.0/drives/{driveId}/items/{itemId}/content"
+node scripts/graph-get.js "/v1.0/drives/{driveId}/items/{itemId}/content"
 
 # Get file metadata (name, size, timestamps, etc.)
-./graph-get.sh "/v1.0/drives/{driveId}/items/{itemId}?\$select=name,size,lastModifiedDateTime,file"
+node scripts/graph-get.js "/v1.0/drives/{driveId}/items/{itemId}?\$select=name,size,lastModifiedDateTime,file"
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/drives/$driveId/items/$itemId/content"
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Get
-```
 
 ### Key notes
 
@@ -69,30 +60,22 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Get
 
 ```bash
 # SP REST — add file to a folder
-./sp-post.sh \
+node scripts/sp-post.js \
   "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Files/add(url='newfile.txt',overwrite=true)" \
   "File content here"
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Files/add(url='newfile.txt',overwrite=true)"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body "File content here"
-```
 
 ### Upload via Graph API (simple upload, < 4 MB)
 
 ```bash
 # PUT to the file path under the parent folder
-./graph-post.sh \
+node scripts/graph-post.js \
   "/v1.0/drives/{driveId}/items/{parentId}:/{filename}:/content" \
   "File content here" \
   PUT
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/drives/$driveId/items/${parentId}:/${filename}:/content"
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Put -Body "File content here"
-```
 
 ### Key notes
 
@@ -107,28 +90,24 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Put -Body "File conte
 ### List subfolders (SP REST)
 
 ```bash
-./sp-get.sh "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Folders"
+node scripts/sp-get.js "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Folders"
 ```
 
 ### List files in a folder (SP REST)
 
 ```bash
-./sp-get.sh "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Files"
+node scripts/sp-get.js "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Files"
 ```
 
 ### List children via Graph (files and folders together)
 
 ```bash
-./graph-get.sh "/v1.0/drives/{driveId}/root/children?\$select=name,size,folder,file,lastModifiedDateTime"
+node scripts/graph-get.js "/v1.0/drives/{driveId}/root/children?\$select=name,size,folder,file,lastModifiedDateTime"
 
 # List children of a specific folder
-./graph-get.sh "/v1.0/drives/{driveId}/items/{folderId}/children?\$select=name,size,folder,file,lastModifiedDateTime"
+node scripts/graph-get.js "/v1.0/drives/{driveId}/items/{folderId}/children?\$select=name,size,folder,file,lastModifiedDateTime"
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/drives/$driveId/root/children?`$select=name,size,folder,file,lastModifiedDateTime"
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Get
-```
 
 ### Key notes
 
@@ -143,20 +122,15 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Get
 ### Create a folder (SP REST)
 
 ```bash
-./sp-post.sh "/_api/web/folders" \
+node scripts/sp-post.js "/_api/web/folders" \
   '{"ServerRelativeUrl":"/sites/mysite/Shared Documents/NewFolder"}'
 ```
 
-```powershell
-$url = "$siteUrl/_api/web/folders"
-$body = @{ ServerRelativeUrl = "/sites/mysite/Shared Documents/NewFolder" } | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $body -ContentType "application/json"
-```
 
 ### Create a folder via Graph
 
 ```bash
-./graph-post.sh "/v1.0/drives/{driveId}/items/{parentId}/children" \
+node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{parentId}/children" \
   '{"name":"NewFolder","folder":{},"@microsoft.graph.conflictBehavior":"fail"}'
 ```
 
@@ -172,7 +146,7 @@ Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $body -ContentT
 ### Rename a file (SP REST — PATCH)
 
 ```bash
-./sp-post.sh \
+node scripts/sp-post.js \
   "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/old.txt')" \
   '{"Name":"new.txt"}' \
   PATCH
@@ -181,7 +155,7 @@ Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $body -ContentT
 ### Rename a folder (SP REST — PATCH)
 
 ```bash
-./sp-post.sh \
+node scripts/sp-post.js \
   "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents/OldFolder')" \
   '{"Name":"NewFolder"}' \
   PATCH
@@ -190,16 +164,11 @@ Invoke-RestMethod -Uri $url -Headers $headers -Method Post -Body $body -ContentT
 ### Rename via Graph
 
 ```bash
-./graph-post.sh "/v1.0/drives/{driveId}/items/{itemId}" \
+node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{itemId}" \
   '{"name":"new-name.txt"}' \
   PATCH
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/drives/$driveId/items/$itemId"
-$body = @{ name = "new-name.txt" } | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Patch -Body $body -ContentType "application/json"
-```
 
 ---
 
@@ -208,7 +177,7 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Patch -Body $body -Co
 ### Move a file (SP REST)
 
 ```bash
-./sp-post.sh \
+node scripts/sp-post.js \
   "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/moveto(newurl='/sites/mysite/Archive/doc.txt',flags=1)" \
   ''
 ```
@@ -218,7 +187,7 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Patch -Body $body -Co
 ### Copy a file (SP REST)
 
 ```bash
-./sp-post.sh \
+node scripts/sp-post.js \
   "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/copyto(strnewurl='/sites/mysite/Archive/doc.txt',boverwrite=true)" \
   ''
 ```
@@ -226,23 +195,15 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Patch -Body $body -Co
 ### Copy via Graph API
 
 ```bash
-./graph-post.sh "/v1.0/drives/{driveId}/items/{itemId}/copy" \
+node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{itemId}/copy" \
   '{"parentReference":{"driveId":"{destDriveId}","id":"{destFolderId}"},"name":"doc.txt"}'
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/drives/$driveId/items/$itemId/copy"
-$body = @{
-    parentReference = @{ driveId = $destDriveId; id = $destFolderId }
-    name = "doc.txt"
-} | ConvertTo-Json -Depth 3
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Post -Body $body -ContentType "application/json"
-```
 
 ### Move via Graph API
 
 ```bash
-./graph-post.sh "/v1.0/drives/{driveId}/items/{itemId}" \
+node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{itemId}" \
   '{"parentReference":{"id":"{destFolderId}"}}' \
   PATCH
 ```
@@ -260,7 +221,7 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Post -Body $body -Con
 ### Delete to recycle bin (SP REST)
 
 ```bash
-./sp-post.sh \
+node scripts/sp-post.js \
   "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/recycle" \
   ''
 ```
@@ -268,7 +229,7 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Post -Body $body -Con
 ### Permanent delete (SP REST)
 
 ```bash
-./sp-post.sh \
+node scripts/sp-post.js \
   "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')" \
   '' \
   DELETE
@@ -277,13 +238,9 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Post -Body $body -Con
 ### Delete via Graph
 
 ```bash
-./graph-post.sh "/v1.0/drives/{driveId}/items/{itemId}" '' DELETE
+node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{itemId}" '' DELETE
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/drives/$driveId/items/$itemId"
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Delete
-```
 
 ### Key notes
 
@@ -297,7 +254,7 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Delete
 ### Set folder color (SP REST)
 
 ```bash
-./sp-post.sh \
+node scripts/sp-post.js \
   "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents/MyFolder')/ListItemAllFields" \
   '{"_ColorHex":"#038387"}' \
   PATCH
@@ -327,19 +284,14 @@ Set to empty string (`""`) to remove the color.
 
 ```bash
 # Organization-wide view link
-./graph-post.sh "/v1.0/drives/{driveId}/items/{itemId}/createLink" \
+node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{itemId}/createLink" \
   '{"type":"view","scope":"organization"}'
 
 # Anyone link with edit permissions
-./graph-post.sh "/v1.0/drives/{driveId}/items/{itemId}/createLink" \
+node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{itemId}/createLink" \
   '{"type":"edit","scope":"anonymous"}'
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/drives/$driveId/items/$itemId/createLink"
-$body = @{ type = "view"; scope = "organization" } | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Post -Body $body -ContentType "application/json"
-```
 
 ### Link types and scopes
 
@@ -362,30 +314,22 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Post -Body $body -Con
 ### Get version history (Graph API)
 
 ```bash
-./graph-get.sh "/v1.0/drives/{driveId}/items/{itemId}/versions"
+node scripts/graph-get.js "/v1.0/drives/{driveId}/items/{itemId}/versions"
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/drives/$driveId/items/$itemId/versions"
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Get
-```
 
 ### Get a specific version's content
 
 ```bash
-./graph-get.sh "/v1.0/drives/{driveId}/items/{itemId}/versions/{versionId}/content"
+node scripts/graph-get.js "/v1.0/drives/{driveId}/items/{itemId}/versions/{versionId}/content"
 ```
 
 ### Restore a version
 
 ```bash
-./graph-post.sh "/v1.0/drives/{driveId}/items/{itemId}/versions/{versionId}/restoreVersion" ''
+node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{itemId}/versions/{versionId}/restoreVersion" ''
 ```
 
-```powershell
-$url = "https://graph.microsoft.com/v1.0/drives/$driveId/items/$itemId/versions/$versionId/restoreVersion"
-Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Post
-```
 
 ---
 
@@ -394,7 +338,7 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Post
 ### Graph Search API (KQL)
 
 ```bash
-./graph-post.sh "/v1.0/search/query" '{
+node scripts/graph-post.js "/v1.0/search/query" '{
   "requests": [{
     "entityTypes": ["driveItem"],
     "query": { "queryString": "content search term" },
@@ -407,13 +351,9 @@ Invoke-RestMethod -Uri $url -Headers $graphHeaders -Method Post
 ### SP Search API
 
 ```bash
-./sp-get.sh "/_api/search/query?querytext='content search term'&selectproperties='Title,Path,Author,Size'"
+node scripts/sp-get.js "/_api/search/query?querytext='content search term'&selectproperties='Title,Path,Author,Size'"
 ```
 
-```powershell
-$url = "$siteUrl/_api/search/query?querytext='content search term'&selectproperties='Title,Path,Author,Size'"
-Invoke-RestMethod -Uri $url -Headers $headers -Method Get
-```
 
 ### Key notes
 
@@ -429,11 +369,11 @@ Invoke-RestMethod -Uri $url -Headers $headers -Method Get
 
 ```bash
 # Step 1: Create empty .docx in target folder
-./graph-post.sh "/v1.0/drives/{driveId}/items/{parentId}/children" \
+node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{parentId}/children" \
   '{"name":"report.docx","file":{},"@microsoft.graph.conflictBehavior":"rename"}'
 
 # Step 2: Upload content to the created file
-./graph-post.sh "/v1.0/drives/{driveId}/items/{itemId}/content" \
+node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{itemId}/content" \
   "<binary-docx-content>" \
   PUT
 ```

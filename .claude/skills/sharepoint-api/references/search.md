@@ -11,7 +11,7 @@ The Graph Search API is the modern way to search across M365 content. It provide
 ### Search files across SharePoint/OneDrive
 
 ```bash
-./graph-post.sh "/v1.0/search/query" '{
+node scripts/graph-post.js "/v1.0/search/query" '{
   "requests": [{
     "entityTypes": ["driveItem"],
     "query": {"queryString": "budget report Q3"},
@@ -21,23 +21,11 @@ The Graph Search API is the modern way to search across M365 content. It provide
 }'
 ```
 
-```powershell
-$body = @{
-    requests = @(@{
-        entityTypes = @("driveItem")
-        query       = @{ queryString = "budget report Q3" }
-        from        = 0
-        size        = 25
-    })
-} | ConvertTo-Json -Depth 5
-
-Invoke-MgGraphRequest -Method POST -Uri "/v1.0/search/query" -Body $body
-```
 
 ### Search list items
 
 ```bash
-./graph-post.sh "/v1.0/search/query" '{
+node scripts/graph-post.js "/v1.0/search/query" '{
   "requests": [{
     "entityTypes": ["listItem"],
     "query": {"queryString": "contentclass:STS_ListItem_GenericList project plan"},
@@ -47,23 +35,11 @@ Invoke-MgGraphRequest -Method POST -Uri "/v1.0/search/query" -Body $body
 }'
 ```
 
-```powershell
-$body = @{
-    requests = @(@{
-        entityTypes = @("listItem")
-        query       = @{ queryString = "contentclass:STS_ListItem_GenericList project plan" }
-        from        = 0
-        size        = 25
-    })
-} | ConvertTo-Json -Depth 5
-
-Invoke-MgGraphRequest -Method POST -Uri "/v1.0/search/query" -Body $body
-```
 
 ### Search people
 
 ```bash
-./graph-post.sh "/v1.0/search/query" '{
+node scripts/graph-post.js "/v1.0/search/query" '{
   "requests": [{
     "entityTypes": ["person"],
     "query": {"queryString": "engineering manager"}
@@ -74,7 +50,7 @@ Invoke-MgGraphRequest -Method POST -Uri "/v1.0/search/query" -Body $body
 ### Search messages (emails, Teams)
 
 ```bash
-./graph-post.sh "/v1.0/search/query" '{
+node scripts/graph-post.js "/v1.0/search/query" '{
   "requests": [{
     "entityTypes": ["message"],
     "query": {"queryString": "budget approval"}
@@ -85,7 +61,7 @@ Invoke-MgGraphRequest -Method POST -Uri "/v1.0/search/query" -Body $body
 ### Search sites
 
 ```bash
-./graph-post.sh "/v1.0/search/query" '{
+node scripts/graph-post.js "/v1.0/search/query" '{
   "requests": [{
     "entityTypes": ["site"],
     "query": {"queryString": "engineering"}
@@ -93,16 +69,6 @@ Invoke-MgGraphRequest -Method POST -Uri "/v1.0/search/query" -Body $body
 }'
 ```
 
-```powershell
-$body = @{
-    requests = @(@{
-        entityTypes = @("site")
-        query       = @{ queryString = "engineering" }
-    })
-} | ConvertTo-Json -Depth 5
-
-Invoke-MgGraphRequest -Method POST -Uri "/v1.0/search/query" -Body $body
-```
 
 ---
 
@@ -113,31 +79,26 @@ For more granular SharePoint-specific search when you need refiners, managed pro
 ### Basic keyword search
 
 ```bash
-./sp-get.sh "/_api/search/query?querytext='budget report'&selectproperties='Title,Path,Author,LastModifiedTime'&rowlimit=25"
+node scripts/sp-get.js "/_api/search/query?querytext='budget report'&selectproperties='Title,Path,Author,LastModifiedTime'&rowlimit=25"
 ```
 
-```powershell
-Invoke-RestMethod `
-    -Uri "$SpSiteUrl/_api/search/query?querytext='budget report'&selectproperties='Title,Path,Author,LastModifiedTime'&rowlimit=25" `
+``    -Uri "$SpSiteUrl/_api/search/query?querytext='budget report'&selectproperties='Title,Path,Author,LastModifiedTime'&rowlimit=25" `
     -Headers @{ Authorization = "Bearer $token"; Accept = "application/json" }
 ```
 
 ### Search within current site
 
 ```bash
-./sp-get.sh "/_api/search/query?querytext='budget report site:$SP_SITE'&selectproperties='Title,Path'"
+node scripts/sp-get.js "/_api/search/query?querytext='budget report site:$SP_SITE'&selectproperties='Title,Path'"
 ```
 
 ### Search with refiners (facets)
 
 ```bash
-./sp-get.sh "/_api/search/query?querytext='*'&refinementfilters='FileType:equals(\"docx\")'&selectproperties='Title,Path,Size'"
+node scripts/sp-get.js "/_api/search/query?querytext='*'&refinementfilters='FileType:equals(\"docx\")'&selectproperties='Title,Path,Size'"
 ```
 
-```powershell
-$filter = 'FileType:equals("docx")'
-Invoke-RestMethod `
-    -Uri "$SpSiteUrl/_api/search/query?querytext='*'&refinementfilters='$filter'&selectproperties='Title,Path,Size'" `
+``    -Uri "$SpSiteUrl/_api/search/query?querytext='*'&refinementfilters='$filter'&selectproperties='Title,Path,Size'" `
     -Headers @{ Authorization = "Bearer $token"; Accept = "application/json" }
 ```
 
@@ -232,20 +193,20 @@ Results live at `PrimaryQueryResult.RelevantResults.Table.Rows[]`:
 
 ```bash
 # Page 1
-./graph-post.sh "/v1.0/search/query" '{"requests":[{"entityTypes":["driveItem"],"query":{"queryString":"report"},"from":0,"size":25}]}'
+node scripts/graph-post.js "/v1.0/search/query" '{"requests":[{"entityTypes":["driveItem"],"query":{"queryString":"report"},"from":0,"size":25}]}'
 
 # Page 2
-./graph-post.sh "/v1.0/search/query" '{"requests":[{"entityTypes":["driveItem"],"query":{"queryString":"report"},"from":25,"size":25}]}'
+node scripts/graph-post.js "/v1.0/search/query" '{"requests":[{"entityTypes":["driveItem"],"query":{"queryString":"report"},"from":25,"size":25}]}'
 ```
 
 **SP REST:** Use `startrow` and `rowlimit`.
 
 ```bash
 # Page 1
-./sp-get.sh "/_api/search/query?querytext='report'&startrow=0&rowlimit=25"
+node scripts/sp-get.js "/_api/search/query?querytext='report'&startrow=0&rowlimit=25"
 
 # Page 2
-./sp-get.sh "/_api/search/query?querytext='report'&startrow=25&rowlimit=25"
+node scripts/sp-get.js "/_api/search/query?querytext='report'&startrow=25&rowlimit=25"
 ```
 
 ### Sorting
@@ -253,7 +214,7 @@ Results live at `PrimaryQueryResult.RelevantResults.Table.Rows[]`:
 **Graph:** Use `sortProperties` in the request body.
 
 ```bash
-./graph-post.sh "/v1.0/search/query" '{
+node scripts/graph-post.js "/v1.0/search/query" '{
   "requests": [{
     "entityTypes": ["driveItem"],
     "query": {"queryString": "report"},
@@ -265,7 +226,7 @@ Results live at `PrimaryQueryResult.RelevantResults.Table.Rows[]`:
 **SP REST:** Use `sortlist` query parameter.
 
 ```bash
-./sp-get.sh "/_api/search/query?querytext='report'&sortlist='LastModifiedTime:descending'"
+node scripts/sp-get.js "/_api/search/query?querytext='report'&sortlist='LastModifiedTime:descending'"
 ```
 
 ### Refiners (SP REST only)
@@ -274,8 +235,8 @@ Request refiners to get faceted counts, then apply refinement filters:
 
 ```bash
 # Step 1 — request refiners
-./sp-get.sh "/_api/search/query?querytext='*'&refiners='FileType,Author'&rowlimit=0"
+node scripts/sp-get.js "/_api/search/query?querytext='*'&refiners='FileType,Author'&rowlimit=0"
 
 # Step 2 — apply a refinement filter
-./sp-get.sh "/_api/search/query?querytext='*'&refinementfilters='FileType:equals(\"pptx\")'&rowlimit=25"
+node scripts/sp-get.js "/_api/search/query?querytext='*'&refinementfilters='FileType:equals(\"pptx\")'&rowlimit=25"
 ```

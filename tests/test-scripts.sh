@@ -2,7 +2,7 @@
 # ============================================================================
 # test-scripts.sh — Offline validation of sharepoint-api-skill scripts
 # ============================================================================
-# Runs without network calls or external dependencies (beyond bash/curl).
+# Runs without network calls or external dependencies (beyond bash/node).
 # Usage:  bash ./tests/test-scripts.sh
 # Exit:   0 = all passed, non-zero = failure count
 # ============================================================================
@@ -10,17 +10,6 @@
 set +e  # don't exit on test failures
 
 SCRIPT_DIR="$(cd "$(dirname "$0")/../.claude/skills/sharepoint-api/scripts" && pwd)"
-
-# On Windows, git may check out .sh files with CRLF.
-# Create temp copies with LF line endings for reliable testing.
-WORK_DIR=$(mktemp -d)
-trap 'rm -rf "$WORK_DIR"' EXIT
-for f in "$SCRIPT_DIR"/*.sh; do
-    tr -d '\r' < "$f" > "$WORK_DIR/$(basename "$f")"
-    chmod +x "$WORK_DIR/$(basename "$f")"
-done
-# Keep SCRIPT_DIR for file-existence and .ps1 checks; use WORK_DIR for execution
-EXEC_DIR="$WORK_DIR"
 
 pass=0; fail=0; total=0
 
@@ -43,8 +32,7 @@ assert_contains() { echo "$1" | grep -qi "$2"; }
 # Helper: assert file contains pattern
 assert_file_contains() { grep -qE "$2" "$1"; }
 
-# Helper: run a bash script with specific env vars cleared, capture stderr + exit code
-# Usage: run_script "path" [args...] ; then check $LAST_EXIT, $LAST_STDERR
+# Helper: run a node script with env vars cleared, capture stderr + exit code
 LAST_EXIT=0
 LAST_STDERR=""
 LAST_STDOUT=""
@@ -52,30 +40,9 @@ run_script() {
     local script="$1"; shift
     local tmpout; tmpout=$(mktemp)
     local tmperr; tmperr=$(mktemp)
-    # Run in a subshell with clean auth env vars
     (
         unset SP_TOKEN SP_COOKIES SP_SITE GRAPH_TOKEN
-        bash "$script" "$@"
-    ) >"$tmpout" 2>"$tmperr"
-    LAST_EXIT=$?
-    LAST_STDOUT=$(cat "$tmpout")
-    LAST_STDERR=$(cat "$tmperr")
-    rm -f "$tmpout" "$tmperr"
-}
-
-# Helper: run a bash script with specific env vars set
-run_script_env() {
-    local script="$1"; shift
-    local tmpout; tmpout=$(mktemp)
-    local tmperr; tmperr=$(mktemp)
-    (
-        unset SP_TOKEN SP_COOKIES SP_SITE GRAPH_TOKEN
-        # Source env vars passed as KEY=VALUE before remaining args
-        while [[ "$1" == *=* ]]; do
-            export "$1"
-            shift
-        done
-        bash "$script" "$@"
+        node "$script" "$@"
     ) >"$tmpout" 2>"$tmperr"
     LAST_EXIT=$?
     LAST_STDOUT=$(cat "$tmpout")
@@ -89,7 +56,11 @@ run_script_env() {
 echo ""
 echo "📁 File existence"
 
-for s in sp-get.sh sp-post.sh graph-get.sh graph-post.sh sp-auth-wrapper.sh; do
+for s in sp-get.js sp-post.js graph-get.js graph-post.js sp-auth.js; do
+    test_case "$s exists" test -f "$SCRIPT_DIR/$s"
+done
+
+for s in sp-auth-wrapper.sh sp-auth-wrapper.ps1; do
     test_case "$s exists" test -f "$SCRIPT_DIR/$s"
 done
 
@@ -97,22 +68,19 @@ done
 # 2. HAS SHEBANG LINE
 # ============================================================================
 echo ""
-echo "📝 Has shebang line"
+echo "📝 Has node shebang line"
 
-_test_shebang() {
+_test_node_shebang() {
+    head -1 "$1" | tr -d '\r' | grep -q "node"
+}
+for s in sp-get.js sp-post.js graph-get.js graph-post.js sp-auth.js; do
+    test_case "$s has node shebang" _test_node_shebang "$SCRIPT_DIR/$s"
+done
+
+_test_bash_shebang() {
     head -1 "$1" | tr -d '\r' | grep -q "^#!/bin/bash"
 }
-for s in sp-get.sh sp-post.sh graph-get.sh graph-post.sh sp-auth-wrapper.sh; do
-    test_case "$s has #!/bin/bash shebang" _test_shebang "$SCRIPT_DIR/$s"
-done
-
-# Also verify PS1 files exist and have param blocks
-echo ""
-echo "📝 PS1 scripts have param blocks"
-
-for s in sp-get.ps1 sp-post.ps1 graph-get.ps1 graph-post.ps1 sp-auth-wrapper.ps1; do
-    test_case "$s has param() block" grep -qE '^\s*param\s*\(' "$SCRIPT_DIR/$s"
-done
+test_case "sp-auth-wrapper.sh has #!/bin/bash shebang" _test_bash_shebang "$SCRIPT_DIR/sp-auth-wrapper.sh"
 
 # ============================================================================
 # 3. ERROR ON MISSING ARGS
@@ -120,24 +88,17 @@ done
 echo ""
 echo "🚫 Error on missing arguments"
 
-# sp-get.sh — requires endpoint
-run_script "$EXEC_DIR/sp-get.sh"
-test_case "sp-get.sh fails with no args" test "$LAST_EXIT" -ne 0
+run_script "$SCRIPT_DIR/sp-get.js"
+test_case "sp-get.js fails with no args" test "$LAST_EXIT" -ne 0
 
-# sp-post.sh — requires endpoint + body
-run_script "$EXEC_DIR/sp-post.sh"
-test_case "sp-post.sh fails with no args" test "$LAST_EXIT" -ne 0
+run_script "$SCRIPT_DIR/sp-post.js"
+test_case "sp-post.js fails with no args" test "$LAST_EXIT" -ne 0
 
-# graph-get.sh — requires endpoint
-run_script "$EXEC_DIR/graph-get.sh"
-test_case "graph-get.sh fails with no args" test "$LAST_EXIT" -ne 0
+run_script "$SCRIPT_DIR/graph-get.js"
+test_case "graph-get.js fails with no args" test "$LAST_EXIT" -ne 0
 
-# graph-post.sh — requires endpoint + body
-run_script "$EXEC_DIR/graph-post.sh"
-test_case "graph-post.sh fails with no args" test "$LAST_EXIT" -ne 0
-
-# sp-auth-wrapper.sh — requires tenant host (will fail without node/playwright but should source cleanly)
-test_case "sp-auth-wrapper.sh exists" test -f "$SCRIPT_DIR/sp-auth-wrapper.sh"
+run_script "$SCRIPT_DIR/graph-post.js"
+test_case "graph-post.js fails with no args" test "$LAST_EXIT" -ne 0
 
 # ============================================================================
 # 4. ERROR ON MISSING ENV VARS
@@ -145,69 +106,65 @@ test_case "sp-auth-wrapper.sh exists" test -f "$SCRIPT_DIR/sp-auth-wrapper.sh"
 echo ""
 echo "🔑 Error on missing environment variables"
 
-# sp-get: missing SP_SITE
 _test_sp_get_no_site() {
     local tmpout; tmpout=$(mktemp)
     local tmperr; tmperr=$(mktemp)
-    ( unset SP_SITE SP_COOKIES; export SP_TOKEN=fake; bash "$EXEC_DIR/sp-get.sh" "/_api/web" ) >"$tmpout" 2>"$tmperr"
+    ( unset SP_SITE SP_COOKIES; export SP_TOKEN=fake; node "$SCRIPT_DIR/sp-get.js" "/_api/web" ) >"$tmpout" 2>"$tmperr"
     local rc=$?
     LAST_STDERR=$(cat "$tmperr"); rm -f "$tmpout" "$tmperr"
     test "$rc" -ne 0 && assert_contains "$LAST_STDERR" "SP_SITE"
 }
-test_case "sp-get.sh fails when SP_SITE is missing" _test_sp_get_no_site
+test_case "sp-get.js fails when SP_SITE is missing" _test_sp_get_no_site
 
 _test_sp_get_no_token() {
     local tmpout; tmpout=$(mktemp)
     local tmperr; tmperr=$(mktemp)
-    ( unset SP_TOKEN SP_COOKIES; export SP_SITE="https://test.sharepoint.com"; bash "$EXEC_DIR/sp-get.sh" "/_api/web" ) >"$tmpout" 2>"$tmperr"
+    ( unset SP_TOKEN SP_COOKIES; export SP_SITE="https://test.sharepoint.com"; node "$SCRIPT_DIR/sp-get.js" "/_api/web" ) >"$tmpout" 2>"$tmperr"
     local rc=$?
     LAST_STDERR=$(cat "$tmperr"); rm -f "$tmpout" "$tmperr"
     test "$rc" -ne 0 && assert_contains "$LAST_STDERR" "SP_TOKEN"
 }
-test_case "sp-get.sh fails when SP_TOKEN and SP_COOKIES are both missing" _test_sp_get_no_token
+test_case "sp-get.js fails when SP_TOKEN and SP_COOKIES are both missing" _test_sp_get_no_token
 
-# sp-post: missing SP_SITE
 _test_sp_post_no_site() {
     local tmpout; tmpout=$(mktemp)
     local tmperr; tmperr=$(mktemp)
-    ( unset SP_SITE SP_COOKIES; export SP_TOKEN=fake; bash "$EXEC_DIR/sp-post.sh" "/_api/web/lists" '{}' ) >"$tmpout" 2>"$tmperr"
+    ( unset SP_SITE SP_COOKIES; export SP_TOKEN=fake; node "$SCRIPT_DIR/sp-post.js" "/_api/web/lists" '{}' ) >"$tmpout" 2>"$tmperr"
     local rc=$?
     LAST_STDERR=$(cat "$tmperr"); rm -f "$tmpout" "$tmperr"
     test "$rc" -ne 0 && assert_contains "$LAST_STDERR" "SP_SITE"
 }
-test_case "sp-post.sh fails when SP_SITE is missing" _test_sp_post_no_site
+test_case "sp-post.js fails when SP_SITE is missing" _test_sp_post_no_site
 
 _test_sp_post_no_token() {
     local tmpout; tmpout=$(mktemp)
     local tmperr; tmperr=$(mktemp)
-    ( unset SP_TOKEN SP_COOKIES; export SP_SITE="https://test.sharepoint.com"; bash "$EXEC_DIR/sp-post.sh" "/_api/web/lists" '{}' ) >"$tmpout" 2>"$tmperr"
+    ( unset SP_TOKEN SP_COOKIES; export SP_SITE="https://test.sharepoint.com"; node "$SCRIPT_DIR/sp-post.js" "/_api/web/lists" '{}' ) >"$tmpout" 2>"$tmperr"
     local rc=$?
     LAST_STDERR=$(cat "$tmperr"); rm -f "$tmpout" "$tmperr"
     test "$rc" -ne 0 && assert_contains "$LAST_STDERR" "SP_TOKEN"
 }
-test_case "sp-post.sh fails when SP_TOKEN and SP_COOKIES are both missing" _test_sp_post_no_token
+test_case "sp-post.js fails when SP_TOKEN and SP_COOKIES are both missing" _test_sp_post_no_token
 
-# graph-get: missing GRAPH_TOKEN
 _test_graph_get_no_token() {
     local tmpout; tmpout=$(mktemp)
     local tmperr; tmperr=$(mktemp)
-    ( unset GRAPH_TOKEN; bash "$EXEC_DIR/graph-get.sh" "/v1.0/me" ) >"$tmpout" 2>"$tmperr"
+    ( unset GRAPH_TOKEN; node "$SCRIPT_DIR/graph-get.js" "/v1.0/me" ) >"$tmpout" 2>"$tmperr"
     local rc=$?
     LAST_STDERR=$(cat "$tmperr"); rm -f "$tmpout" "$tmperr"
     test "$rc" -ne 0 && assert_contains "$LAST_STDERR" "GRAPH_TOKEN"
 }
-test_case "graph-get.sh fails when GRAPH_TOKEN is missing" _test_graph_get_no_token
+test_case "graph-get.js fails when GRAPH_TOKEN is missing" _test_graph_get_no_token
 
-# graph-post: missing GRAPH_TOKEN
 _test_graph_post_no_token() {
     local tmpout; tmpout=$(mktemp)
     local tmperr; tmperr=$(mktemp)
-    ( unset GRAPH_TOKEN; bash "$EXEC_DIR/graph-post.sh" "/v1.0/me" '{}' ) >"$tmpout" 2>"$tmperr"
+    ( unset GRAPH_TOKEN; node "$SCRIPT_DIR/graph-post.js" "/v1.0/me" '{}' ) >"$tmpout" 2>"$tmperr"
     local rc=$?
     LAST_STDERR=$(cat "$tmperr"); rm -f "$tmpout" "$tmperr"
     test "$rc" -ne 0 && assert_contains "$LAST_STDERR" "GRAPH_TOKEN"
 }
-test_case "graph-post.sh fails when GRAPH_TOKEN is missing" _test_graph_post_no_token
+test_case "graph-post.js fails when GRAPH_TOKEN is missing" _test_graph_post_no_token
 
 # ============================================================================
 # 5. HELPFUL ERROR MESSAGES (reference sp-auth)
@@ -217,35 +174,35 @@ echo "💡 Helpful error messages reference sp-auth"
 
 _test_sp_get_mentions_auth() {
     local tmperr; tmperr=$(mktemp)
-    ( unset SP_SITE SP_TOKEN SP_COOKIES; bash "$EXEC_DIR/sp-get.sh" "/_api/web" ) 2>"$tmperr" >/dev/null
+    ( unset SP_SITE SP_TOKEN SP_COOKIES; node "$SCRIPT_DIR/sp-get.js" "/_api/web" ) 2>"$tmperr" >/dev/null
     LAST_STDERR=$(cat "$tmperr"); rm -f "$tmperr"
     assert_contains "$LAST_STDERR" "sp-auth"
 }
-test_case "sp-get.sh error mentions sp-auth" _test_sp_get_mentions_auth
+test_case "sp-get.js error mentions sp-auth" _test_sp_get_mentions_auth
 
 _test_sp_post_mentions_auth() {
     local tmperr; tmperr=$(mktemp)
-    ( unset SP_SITE SP_TOKEN SP_COOKIES; bash "$EXEC_DIR/sp-post.sh" "/_api/web" '{}' ) 2>"$tmperr" >/dev/null
+    ( unset SP_SITE SP_TOKEN SP_COOKIES; node "$SCRIPT_DIR/sp-post.js" "/_api/web" '{}' ) 2>"$tmperr" >/dev/null
     LAST_STDERR=$(cat "$tmperr"); rm -f "$tmperr"
     assert_contains "$LAST_STDERR" "sp-auth"
 }
-test_case "sp-post.sh error mentions sp-auth" _test_sp_post_mentions_auth
+test_case "sp-post.js error mentions sp-auth" _test_sp_post_mentions_auth
 
 _test_graph_get_mentions_auth() {
     local tmperr; tmperr=$(mktemp)
-    ( unset GRAPH_TOKEN; bash "$EXEC_DIR/graph-get.sh" "/v1.0/me" ) 2>"$tmperr" >/dev/null
+    ( unset GRAPH_TOKEN; node "$SCRIPT_DIR/graph-get.js" "/v1.0/me" ) 2>"$tmperr" >/dev/null
     LAST_STDERR=$(cat "$tmperr"); rm -f "$tmperr"
     assert_contains "$LAST_STDERR" "sp-auth"
 }
-test_case "graph-get.sh error mentions sp-auth" _test_graph_get_mentions_auth
+test_case "graph-get.js error mentions sp-auth" _test_graph_get_mentions_auth
 
 _test_graph_post_mentions_auth() {
     local tmperr; tmperr=$(mktemp)
-    ( unset GRAPH_TOKEN; bash "$EXEC_DIR/graph-post.sh" "/v1.0/me" '{}' ) 2>"$tmperr" >/dev/null
+    ( unset GRAPH_TOKEN; node "$SCRIPT_DIR/graph-post.js" "/v1.0/me" '{}' ) 2>"$tmperr" >/dev/null
     LAST_STDERR=$(cat "$tmperr"); rm -f "$tmperr"
     assert_contains "$LAST_STDERR" "sp-auth"
 }
-test_case "graph-post.sh error mentions sp-auth" _test_graph_post_mentions_auth
+test_case "graph-post.js error mentions sp-auth" _test_graph_post_mentions_auth
 
 # ============================================================================
 # 6. sp-auth.js: exists and uses playwright
@@ -268,7 +225,7 @@ test_case "sp-auth.js handles --ps1 flag" \
     assert_file_contains "$SCRIPT_DIR/sp-auth.js" "\-\-ps1"
 
 # ============================================================================
-# 7. sp-auth.js: protocol stripping in parseTenantHost
+# 7. sp-auth.js: protocol stripping
 # ============================================================================
 echo ""
 echo "🔗 sp-auth.js protocol stripping"
@@ -282,37 +239,49 @@ test_case "sp-auth-wrapper.ps1 calls sp-auth.js" \
     assert_file_contains "$SCRIPT_DIR/sp-auth-wrapper.ps1" "sp-auth\.js"
 
 # ============================================================================
-# 8. sp-auth-wrapper.sh: calls sp-auth.js
+# 8. sp-auth-wrapper.sh validation
 # ============================================================================
 echo ""
 echo "🌐 sp-auth-wrapper validation"
 
-test_case "sp-auth-wrapper.sh has shebang" _test_shebang "$SCRIPT_DIR/sp-auth-wrapper.sh"
+test_case "sp-auth-wrapper.sh has shebang" _test_bash_shebang "$SCRIPT_DIR/sp-auth-wrapper.sh"
 
 test_case "sp-auth-wrapper.sh uses eval" \
     assert_file_contains "$SCRIPT_DIR/sp-auth-wrapper.sh" "eval"
 
 # ============================================================================
-# 9. sp-post.sh: supports method override (3rd parameter)
+# 9. sp-post.js: supports method override (3rd argument)
 # ============================================================================
 echo ""
-echo "🔀 sp-post.sh method override"
+echo "🔀 sp-post.js method override"
 
-test_case "sp-post.sh accepts 3rd positional arg (METHOD_OVERRIDE)" \
-    assert_file_contains "$SCRIPT_DIR/sp-post.sh" 'METHOD_OVERRIDE|\$\{3:-\}'
+test_case "sp-post.js accepts 3rd argument (methodOverride)" \
+    assert_file_contains "$SCRIPT_DIR/sp-post.js" 'methodOverride'
 
-test_case "sp-post.sh references PATCH" \
-    assert_file_contains "$SCRIPT_DIR/sp-post.sh" "PATCH"
+test_case "sp-post.js references PATCH" \
+    assert_file_contains "$SCRIPT_DIR/sp-post.js" "PATCH"
 
-test_case "sp-post.sh references DELETE" \
-    assert_file_contains "$SCRIPT_DIR/sp-post.sh" "DELETE"
+test_case "sp-post.js references DELETE" \
+    assert_file_contains "$SCRIPT_DIR/sp-post.js" "DELETE"
 
-test_case "sp-post.sh sets X-HTTP-Method header" \
-    assert_file_contains "$SCRIPT_DIR/sp-post.sh" "X-HTTP-Method"
+test_case "sp-post.js sets X-HTTP-Method header" \
+    assert_file_contains "$SCRIPT_DIR/sp-post.js" "X-HTTP-Method"
 
-# graph-post.sh also supports method override
-test_case "graph-post.sh accepts 3rd positional arg (METHOD)" \
-    assert_file_contains "$SCRIPT_DIR/graph-post.sh" 'METHOD|\$\{3:-'
+test_case "graph-post.js accepts 3rd argument (method override)" \
+    assert_file_contains "$SCRIPT_DIR/graph-post.js" 'argv\[4\]'
+
+# ============================================================================
+# 10. Zero npm dependencies
+# ============================================================================
+echo ""
+echo "📦 Zero npm dependencies"
+
+_test_no_require() {
+    ! grep -q 'require\s*(' "$1"
+}
+for s in sp-get.js sp-post.js graph-get.js graph-post.js; do
+    test_case "$s has no require() calls" _test_no_require "$SCRIPT_DIR/$s"
+done
 
 # ============================================================================
 # SUMMARY

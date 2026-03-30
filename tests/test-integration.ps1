@@ -35,7 +35,7 @@ function Test {
 
 function SpGet {
     param([string]$Endpoint)
-    $result = & "$scriptDir\sp-get.ps1" $Endpoint 2>&1
+    $result = node "$scriptDir\sp-get.js" $Endpoint 2>&1
     if ($LASTEXITCODE -ne 0) { throw "sp-get failed: $result" }
     return $result | ConvertFrom-Json
 }
@@ -46,7 +46,9 @@ function SpPost {
         [string]$Body,
         [string]$Method = ""
     )
-    $result = & "$scriptDir\sp-post.ps1" $Endpoint $Body $Method 2>&1
+    $args = @("$scriptDir\sp-post.js", $Endpoint, $Body)
+    if ($Method) { $args += $Method }
+    $result = node @args 2>&1
     if ($LASTEXITCODE -ne 0) { throw "sp-post failed: $result" }
     if ([string]::IsNullOrWhiteSpace("$result")) { return $null }
     return $result | ConvertFrom-Json
@@ -238,7 +240,7 @@ try {
     }
 
     Test "Read file content back — matches" {
-        $content = & "$scriptDir\sp-get.ps1" "/_api/web/getfilebyserverrelativeurl('$docLibRelative/$testFileName')/`$value" 2>&1
+        $content = node "$scriptDir\sp-get.js" "/_api/web/getfilebyserverrelativeurl('$docLibRelative/$testFileName')/`$value" 2>&1
         if ($LASTEXITCODE -ne 0) { throw "sp-get failed: $content" }
         $contentStr = "$content"
         if (-not $contentStr.Contains($testPrefix)) {

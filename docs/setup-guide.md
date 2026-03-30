@@ -49,7 +49,7 @@ Run the same auth command. It launches Edge headlessly (no visible window), read
 Run a quick test call to confirm everything is working:
 
 ```bash
-./sp-get.sh "/_api/web?$select=Title"
+node scripts/sp-get.js "/_api/web?$select=Title"
 ```
 
 You should see a JSON response containing your site's title.

@@ -12,6 +12,9 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
       - name: Run PowerShell tests
         shell: pwsh
         run: ./tests/test-scripts.ps1
@@ -21,6 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
       - name: Make scripts executable
         run: chmod +x .claude/skills/sharepoint-api/scripts/*.sh tests/*.sh
       - name: Run bash tests
@@ -31,7 +37,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check bash scripts have shebang
+      - name: Check Node.js scripts have shebang
+        run: |
+          for f in .claude/skills/sharepoint-api/scripts/*.js; do
+            head -1 "$f" | grep -q 'node' || (echo "Missing node shebang: $f" && exit 1)
+          done
+          echo "All Node.js scripts have proper shebang"
+      - name: Check bash wrappers have shebang
         run: |
           for f in .claude/skills/sharepoint-api/scripts/*.sh; do
             head -1 "$f" | grep -q '#!/bin/bash' || (echo "Missing shebang: $f" && exit 1)

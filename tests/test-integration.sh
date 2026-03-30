@@ -39,11 +39,13 @@ run_test() {
 }
 
 sp_get() {
-    "$SCRIPT_DIR/sp-get.sh" "$1"
+    node "$SCRIPT_DIR/sp-get.js" "$1"
 }
 
 sp_post() {
-    "$SCRIPT_DIR/sp-post.sh" "$1" "$2" "${3:-}"
+    local args=("$SCRIPT_DIR/sp-post.js" "$1" "$2")
+    if [[ -n "${3:-}" ]]; then args+=("$3"); fi
+    node "${args[@]}"
 }
 
 json_val() {

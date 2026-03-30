@@ -26,15 +26,9 @@ Lists all non-hidden lists and libraries on a site. This is the entry point for 
 
 ```bash
 # Get all non-hidden lists and libraries
-./sp-get.sh "/_api/web/lists?\$filter=Hidden eq false&\$select=Id,Title,BaseTemplate,ItemCount,LastItemModifiedDate,Description"
+node scripts/sp-get.js "/_api/web/lists?\$filter=Hidden eq false&\$select=Id,Title,BaseTemplate,ItemCount,LastItemModifiedDate,Description"
 ```
 
-### PowerShell
-
-```powershell
-$response = Invoke-SpRest -Url "/_api/web/lists?`$filter=Hidden eq false&`$select=Id,Title,BaseTemplate,ItemCount,LastItemModifiedDate,Description"
-$response.value | Format-Table Title, BaseTemplate, ItemCount
-```
 
 ### BaseTemplate Reference
 
@@ -80,22 +74,15 @@ Retrieve full metadata about a specific list, including its fields.
 
 ```bash
 # Full list info with fields
-./sp-get.sh "/_api/web/lists(guid'{listId}')?\$expand=Fields&\$select=Id,Title,Description,ItemCount,Fields/Title,Fields/InternalName,Fields/TypeAsString,Fields/Required,Fields/Choices"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')?\$expand=Fields&\$select=Id,Title,Description,ItemCount,Fields/Title,Fields/InternalName,Fields/TypeAsString,Fields/Required,Fields/Choices"
 
 # Just columns (non-hidden, non-readonly)
-./sp-get.sh "/_api/web/lists(guid'{listId}')/fields?\$filter=Hidden eq false and ReadOnlyField eq false&\$select=Title,InternalName,TypeAsString,Required,Description"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$filter=Hidden eq false and ReadOnlyField eq false&\$select=Title,InternalName,TypeAsString,Required,Description"
 
 # By list title instead of GUID
-./sp-get.sh "/_api/web/lists/getbytitle('My List')/fields?\$filter=Hidden eq false and ReadOnlyField eq false&\$select=Title,InternalName,TypeAsString,Required,Description"
+node scripts/sp-get.js "/_api/web/lists/getbytitle('My List')/fields?\$filter=Hidden eq false and ReadOnlyField eq false&\$select=Title,InternalName,TypeAsString,Required,Description"
 ```
 
-### PowerShell
-
-```powershell
-# Get fields for a list by title
-$fields = Invoke-SpRest -Url "/_api/web/lists/getbytitle('My List')/fields?`$filter=Hidden eq false and ReadOnlyField eq false&`$select=Title,InternalName,TypeAsString,Required,Description"
-$fields.value | Format-Table Title, InternalName, TypeAsString, Required
-```
 
 ### Common Field TypeAsString Values
 
@@ -132,26 +119,22 @@ $fields.value | Format-Table Title, InternalName, TypeAsString, Required
 
 ```bash
 # Current site info
-./sp-get.sh "/_api/web?\$select=Title,Url,Description,Language,Created"
+node scripts/sp-get.js "/_api/web?\$select=Title,Url,Description,Language,Created"
 
 # Site collection info
-./sp-get.sh "/_api/site?\$select=Id,Url,PrimaryUri"
+node scripts/sp-get.js "/_api/site?\$select=Id,Url,PrimaryUri"
 ```
 
 ### Graph API
 
 ```bash
 # Get site by hostname and path
-./graph-get.sh "/v1.0/sites/{hostname}:{serverRelativePath}?\$select=id,displayName,webUrl,description"
+node scripts/graph-get.js "/v1.0/sites/{hostname}:{serverRelativePath}?\$select=id,displayName,webUrl,description"
 
 # Example: contoso.sharepoint.com, path /sites/TeamSite
-./graph-get.sh "/v1.0/sites/contoso.sharepoint.com:/sites/TeamSite?\$select=id,displayName,webUrl,description"
+node scripts/graph-get.js "/v1.0/sites/contoso.sharepoint.com:/sites/TeamSite?\$select=id,displayName,webUrl,description"
 ```
 
-### PowerShell
-
-```powershell
-$site = Invoke-SpRest -Url "/_api/web?`$select=Title,Url,Description,Language,Created"
 Write-Host "Site: $($site.Title) at $($site.Url)"
 ```
 
@@ -165,27 +148,16 @@ Many Graph API calls require a `siteId`. This section covers how to obtain it.
 
 ```bash
 # Get siteId from URL (needed for many Graph calls)
-./graph-get.sh "/v1.0/sites/{hostname}:{serverRelativePath}"
+node scripts/graph-get.js "/v1.0/sites/{hostname}:{serverRelativePath}"
 # Response includes: id (format: {hostname},{siteCollectionId},{webId})
 
 # Get all drives (document libraries) for a site
-./graph-get.sh "/v1.0/sites/{siteId}/drives?\$select=id,name,webUrl"
+node scripts/graph-get.js "/v1.0/sites/{siteId}/drives?\$select=id,name,webUrl"
 
 # Get the default document library drive
-./graph-get.sh "/v1.0/sites/{siteId}/drive?\$select=id,name,webUrl"
+node scripts/graph-get.js "/v1.0/sites/{siteId}/drive?\$select=id,name,webUrl"
 ```
 
-### PowerShell
-
-```powershell
-# Get siteId
-$site = Invoke-GraphRest -Url "/v1.0/sites/contoso.sharepoint.com:/sites/TeamSite"
-$siteId = $site.id
-
-# Get drives for that site
-$drives = Invoke-GraphRest -Url "/v1.0/sites/$siteId/drives?`$select=id,name,webUrl"
-$drives.value | Format-Table name, id, webUrl
-```
 
 ### Notes
 
@@ -201,39 +173,27 @@ $drives.value | Format-Table name, id, webUrl
 
 ```bash
 # Current user via REST
-./sp-get.sh "/_api/web/currentuser?\$select=Id,Title,Email,LoginName"
+node scripts/sp-get.js "/_api/web/currentuser?\$select=Id,Title,Email,LoginName"
 ```
 
 ### Site Users
 
 ```bash
 # All site users (PrincipalType 1 = individual users)
-./sp-get.sh "/_api/web/siteusers?\$select=Id,Title,Email&\$filter=PrincipalType eq 1"
+node scripts/sp-get.js "/_api/web/siteusers?\$select=Id,Title,Email&\$filter=PrincipalType eq 1"
 
 # Resolve user by email (for person field assignment)
-./sp-get.sh "/_api/web/siteusers?\$filter=Email eq 'user@contoso.com'&\$select=Id"
+node scripts/sp-get.js "/_api/web/siteusers?\$filter=Email eq 'user@contoso.com'&\$select=Id"
 ```
 
 ### Graph User Search
 
 ```bash
 # Search for users by display name
-./graph-get.sh "/v1.0/users?\$search=\"displayName:John\"&\$select=displayName,mail,id"
+node scripts/graph-get.js "/v1.0/users?\$search=\"displayName:John\"&\$select=displayName,mail,id"
 
 # Get specific user by email
-./graph-get.sh "/v1.0/users/user@contoso.com?\$select=displayName,mail,id"
-```
-
-### PowerShell
-
-```powershell
-# Current user
-$me = Invoke-SpRest -Url "/_api/web/currentuser?`$select=Id,Title,Email,LoginName"
-Write-Host "Current user: $($me.Title) ($($me.Email))"
-
-# Resolve user by email
-$user = Invoke-SpRest -Url "/_api/web/siteusers?`$filter=Email eq 'user@contoso.com'&`$select=Id"
-$userId = $user.value[0].Id
+node scripts/graph-get.js "/v1.0/users/user@contoso.com?\$select=displayName,mail,id"
 ```
 
 ### PrincipalType Values
@@ -259,39 +219,25 @@ $userId = $user.value[0].Id
 
 ```bash
 # Get the term store
-./sp-get.sh "/_api/v2.1/termstore"
+node scripts/sp-get.js "/_api/v2.1/termstore"
 
 # Get term groups
-./sp-get.sh "/_api/v2.1/termstore/groups"
+node scripts/sp-get.js "/_api/v2.1/termstore/groups"
 ```
 
 ### Term Sets
 
 ```bash
 # Get term sets in a group
-./sp-get.sh "/_api/v2.1/termstore/groups/{groupId}/sets"
+node scripts/sp-get.js "/_api/v2.1/termstore/groups/{groupId}/sets"
 
 # Get terms in a term set
-./sp-get.sh "/_api/v2.1/termstore/sets/{setId}/terms"
+node scripts/sp-get.js "/_api/v2.1/termstore/sets/{setId}/terms"
 
 # Search for a specific term by label
-./sp-get.sh "/_api/v2.1/termstore/sets/{setId}/terms?\$filter=labels/any(a:a/name eq 'term name')"
+node scripts/sp-get.js "/_api/v2.1/termstore/sets/{setId}/terms?\$filter=labels/any(a:a/name eq 'term name')"
 ```
 
-### PowerShell
-
-```powershell
-# Get term store
-$termStore = Invoke-SpRest -Url "/_api/v2.1/termstore"
-
-# Get all term sets in a group
-$termSets = Invoke-SpRest -Url "/_api/v2.1/termstore/groups/$groupId/sets"
-$termSets.value | Format-Table id, localizedNames
-
-# Get terms
-$terms = Invoke-SpRest -Url "/_api/v2.1/termstore/sets/$setId/terms"
-$terms.value | ForEach-Object { Write-Host "$($_.labels[0].name) ($($_.id))" }
-```
 
 ### Notes
 
@@ -309,22 +255,10 @@ Lookup fields reference items in another list. Resolving them requires knowing t
 
 ```bash
 # Get lookup field details (find target list and field)
-./sp-get.sh "/_api/web/lists(guid'{listId}')/fields?\$filter=InternalName eq '{lookupFieldName}'&\$select=LookupList,LookupField,Title,InternalName"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$filter=InternalName eq '{lookupFieldName}'&\$select=LookupList,LookupField,Title,InternalName"
 
 # Resolve lookup values — query the target list
-./sp-get.sh "/_api/web/lists(guid'{targetListId}')/items?\$select=Id,{lookupField}&\$filter=Id eq {lookupValueId}"
-```
-
-### PowerShell
-
-```powershell
-# Get lookup field metadata
-$field = Invoke-SpRest -Url "/_api/web/lists(guid'$listId')/fields?`$filter=InternalName eq '$lookupFieldName'&`$select=LookupList,LookupField"
-$targetListId = $field.value[0].LookupList
-$targetField = $field.value[0].LookupField
-
-# Resolve the lookup value
-$item = Invoke-SpRest -Url "/_api/web/lists(guid'$targetListId')/items?`$select=Id,$targetField&`$filter=Id eq $lookupValueId"
+node scripts/sp-get.js "/_api/web/lists(guid'{targetListId}')/items?\$select=Id,{lookupField}&\$filter=Id eq {lookupValueId}"
 ```
 
 ### Notes
@@ -341,16 +275,12 @@ $item = Invoke-SpRest -Url "/_api/web/lists(guid'$targetListId')/items?`$select=
 
 ```bash
 # Get regional settings (date format, time zone)
-./sp-get.sh "/_api/web/regionalsettings?\$select=DateFormat,TimeZone,Time24,LocaleId"
+node scripts/sp-get.js "/_api/web/regionalsettings?\$select=DateFormat,TimeZone,Time24,LocaleId"
 
 # Get available time zones
-./sp-get.sh "/_api/web/regionalsettings/timezones?\$select=Id,Description,Bias"
+node scripts/sp-get.js "/_api/web/regionalsettings/timezones?\$select=Id,Description,Bias"
 ```
 
-### PowerShell
-
-```powershell
-$regional = Invoke-SpRest -Url "/_api/web/regionalsettings?`$select=DateFormat,TimeZone,Time24,LocaleId"
 Write-Host "Date format: $($regional.DateFormat), 24h: $($regional.Time24)"
 ```
 
@@ -367,14 +297,9 @@ Write-Host "Date format: $($regional.DateFormat), 24h: $($regional.Time24)"
 ```bash
 # Location fields use Bing Maps integration — values are JSON objects
 # Read a location field value from a list item
-./sp-get.sh "/_api/web/lists/getbytitle('My List')/items({itemId})?\$select={locationFieldName}"
+node scripts/sp-get.js "/_api/web/lists/getbytitle('My List')/items({itemId})?\$select={locationFieldName}"
 ```
 
-### PowerShell
-
-```powershell
-$item = Invoke-SpRest -Url "/_api/web/lists/getbytitle('My List')/items($itemId)?`$select=$locationFieldName"
-$location = $item.$locationFieldName | ConvertFrom-Json
 Write-Host "Address: $($location.Address.Street), $($location.Address.City)"
 ```
 
@@ -405,18 +330,12 @@ Write-Host "Address: $($location.Address.Street), $($location.Address.City)"
 
 ```bash
 # List content types for a specific list
-./sp-get.sh "/_api/web/lists(guid'{listId}')/contenttypes?\$select=Name,Id,Description"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/contenttypes?\$select=Name,Id,Description"
 
 # Site-level content types
-./sp-get.sh "/_api/web/contenttypes?\$select=Name,Id,Description"
+node scripts/sp-get.js "/_api/web/contenttypes?\$select=Name,Id,Description"
 ```
 
-### PowerShell
-
-```powershell
-$contentTypes = Invoke-SpRest -Url "/_api/web/lists(guid'$listId')/contenttypes?`$select=Name,Id,Description"
-$contentTypes.value | Format-Table Name, Description
-```
 
 ### Notes
 
@@ -429,15 +348,9 @@ $contentTypes.value | Format-Table Name, Description
 
 ```bash
 # List site pages
-./sp-get.sh "/_api/web/lists/getbytitle('Site Pages')/items?\$select=Title,FileLeafRef,PromotedState"
+node scripts/sp-get.js "/_api/web/lists/getbytitle('Site Pages')/items?\$select=Title,FileLeafRef,PromotedState"
 ```
 
-### PowerShell
-
-```powershell
-$pages = Invoke-SpRest -Url "/_api/web/lists/getbytitle('Site Pages')/items?`$select=Title,FileLeafRef,PromotedState"
-$pages.value | Format-Table Title, FileLeafRef, PromotedState
-```
 
 ### PromotedState Values
 
@@ -457,19 +370,19 @@ A typical site discovery flow combines multiple calls:
 
 ```bash
 # 1. Get site info
-./sp-get.sh "/_api/web?\$select=Title,Url,Description"
+node scripts/sp-get.js "/_api/web?\$select=Title,Url,Description"
 
 # 2. Discover all lists/libraries
-./sp-get.sh "/_api/web/lists?\$filter=Hidden eq false&\$select=Id,Title,BaseTemplate,ItemCount"
+node scripts/sp-get.js "/_api/web/lists?\$filter=Hidden eq false&\$select=Id,Title,BaseTemplate,ItemCount"
 
 # 3. For each interesting list, get its schema
-./sp-get.sh "/_api/web/lists(guid'{listId}')/fields?\$filter=Hidden eq false and ReadOnlyField eq false&\$select=Title,InternalName,TypeAsString,Required"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$filter=Hidden eq false and ReadOnlyField eq false&\$select=Title,InternalName,TypeAsString,Required"
 
 # 4. Resolve taxonomy fields if present
-./sp-get.sh "/_api/v2.1/termstore/sets/{setId}/terms"
+node scripts/sp-get.js "/_api/v2.1/termstore/sets/{setId}/terms"
 
 # 5. Resolve lookup field targets
-./sp-get.sh "/_api/web/lists(guid'{listId}')/fields?\$filter=TypeAsString eq 'Lookup'&\$select=InternalName,LookupList,LookupField"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$filter=TypeAsString eq 'Lookup'&\$select=InternalName,LookupList,LookupField"
 ```
 
 ### Identifying Current Context
@@ -480,8 +393,8 @@ A typical site discovery flow combines multiple calls:
 # For lists, the URL typically contains /Lists/{listName}
 
 # Get list by URL
-./sp-get.sh "/_api/web/GetList('/sites/MySite/Lists/MyList')?\$select=Id,Title,BaseTemplate"
+node scripts/sp-get.js "/_api/web/GetList('/sites/MySite/Lists/MyList')?\$select=Id,Title,BaseTemplate"
 
 # Get list by server-relative URL
-./sp-get.sh "/_api/web/GetList('{serverRelativeUrl}')?\$select=Id,Title,BaseTemplate,ItemCount"
+node scripts/sp-get.js "/_api/web/GetList('{serverRelativeUrl}')?\$select=Id,Title,BaseTemplate,ItemCount"
 ```

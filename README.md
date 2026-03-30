@@ -14,7 +14,7 @@ This skill teaches AI coding agents to interact with any SharePoint Online site 
 - **Search, users, and permissions** — everything the SharePoint REST API exposes
 - **Covers 50+ SharePoint operations** via REST and Graph API calls
 - **Zero app registration** — authenticates via Playwright persistent browser context
-- **Cross-platform** — every script ships as both Bash and PowerShell
+- **Cross-platform** — all scripts are Node.js (works everywhere Node 18+ is installed)
 
 ## Install
 
@@ -61,18 +61,18 @@ Playwright launches a persistent Edge browser context that inherits Windows SSO/
 
 ## What's Included
 
-### Helper Scripts (9)
+### Helper Scripts (7)
 
-Five operations × two platforms (Bash + PowerShell), plus the Node.js auth script:
+Five Node.js scripts (cross-platform, zero npm dependencies) plus two thin shell wrappers for auth:
 
 | Script | Purpose |
 |--------|---------|
-| `sp-auth-wrapper` | Authenticate via Playwright persistent context |
+| `sp-auth-wrapper.sh` / `.ps1` | Authenticate via Playwright persistent context |
 | `sp-auth.js` | Core auth engine (called by wrappers) |
-| `sp-get` | SharePoint REST GET requests |
-| `sp-post` | SharePoint REST POST/PATCH/DELETE requests |
-| `graph-get` | Microsoft Graph GET requests |
-| `graph-post` | Microsoft Graph POST/PATCH/DELETE requests |
+| `sp-get.js` | SharePoint REST GET requests |
+| `sp-post.js` | SharePoint REST POST/PATCH/DELETE requests |
+| `graph-get.js` | Microsoft Graph GET requests |
+| `graph-post.js` | Microsoft Graph POST/PATCH/DELETE requests |
 
 ### Reference Guides (8)
 
@@ -108,13 +108,13 @@ Each file provides detailed API documentation for a specific domain:
 ```bash
 .claude/skills/sharepoint-api/
 ├── SKILL.md              ← Skill entry point (loaded by AI agents)
-├── scripts/              ← Helper scripts (Bash + PowerShell + Node.js auth)
+├── scripts/              ← Helper scripts (Node.js + shell auth wrappers)
 └── references/           ← 8 domain reference guides
 ```
 
 ## Prerequisites
 
-- **Node.js** (18+) — for the Playwright auth script
+- **Node.js** (18+) — for all scripts (auth + REST helpers)
 - **Microsoft Edge** — Playwright uses your system Edge for auth
 - **No app registration** — uses your existing browser session via persistent context
 - Run `npm install` once to install Playwright
