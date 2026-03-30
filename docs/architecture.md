@@ -64,6 +64,33 @@ Agent loads SKILL.md (~2K tokens)
             └─ api-patterns.md (pagination, $filter, CAML)
 ```
 
+### Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `sp-auth-wrapper.sh` / `.ps1` | Authenticate via Playwright (sets SP_COOKIES, SP_SITE, GRAPH_TOKEN) |
+| `sp-auth.js` | Core auth engine — Playwright persistent context, token interception, MSAL cache scan |
+| `sp-env.js` | Shared auth loader — resolves SP_SITE, SP_COOKIES, SP_TOKEN, GRAPH_TOKEN from env/file |
+| `sp-get.js` | SharePoint REST GET |
+| `sp-post.js` | SharePoint REST POST/PATCH/DELETE (auto-fetches request digest) |
+| `graph-get.js` | Microsoft Graph GET |
+| `graph-post.js` | Microsoft Graph POST/PATCH/DELETE |
+
+### Reference Guides
+
+8 domain-specific files loaded on demand by the agent (keeps base token cost low at ~2K):
+
+| Reference | Covers |
+|-----------|--------|
+| `list-operations.md` | List/item CRUD, views, filters, CAML queries |
+| `file-operations.md` | Upload, download, copy, move, versions, folders |
+| `search.md` | Graph Search, SP Search, KQL syntax |
+| `page-operations.md` | Modern pages, news posts, publishing |
+| `user-permissions.md` | Users, sharing, permissions, email, Teams |
+| `site-discovery.md` | Site properties, lists, fields, taxonomy |
+| `api-patterns.md` | OData, batching, throttling, CAML |
+| `advanced-operations.md` | Rules, recycle bin, navigation, features |
+
 ### Design Decisions Log
 
 | Decision | Chosen | Why |
