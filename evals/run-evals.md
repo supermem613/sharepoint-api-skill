@@ -25,11 +25,11 @@ You are evaluating the **sharepoint-api-skill**. This instruction tells you how 
 
    This must return the **specific site's** title and URL (not the tenant root). If it returns the wrong site, fix `SP_SITE`.
 
-   > ⚠️ **Warning:** Evals 06-08 create/update/delete list items, and evals 12-13 upload/delete files. All test data uses the `EVAL_TEST_` prefix and is cleaned up. **Only run against a test or development site, not production.**
+   > ⚠️ **Warning:** Many evals create, update, and delete resources (list items, files, lists, pages, rules, etc.). All test data uses the `EVAL_TEST_` prefix and is cleaned up. **Only run against a test or development site, not production.**
 
 ## How to Run
 
-1. Read each prompt file in `evals/prompts/` in order (01 through 20)
+1. Read each prompt file in `evals/prompts/` in order (01 through 48)
 2. For each eval:
    a. Read the **Task** section and execute it
    b. After completing (or failing), check yourself against the **Checks** section
@@ -51,19 +51,20 @@ Write the report as:
 # Eval Report — [date]
 
 **Site:** [site URL]
-**Overall:** [passed]/[total] ([percentage]%)
+**Overall:** [passed]/48 ([percentage]%)
 
 ## Summary by Category
 
 | Category | Passed | Total | Score |
 |----------|--------|-------|-------|
 | Auth | X | 1 | X% |
-| Discovery | X | 3 | X% |
-| List CRUD | X | 5 | X% |
-| Files | X | 4 | X% |
+| Discovery | X | 6 | X% |
+| List CRUD | X | 14 | X% |
+| Files | X | 9 | X% |
 | Search | X | 2 | X% |
-| Users | X | 2 | X% |
-| Advanced | X | 3 | X% |
+| Users | X | 5 | X% |
+| Pages | X | 4 | X% |
+| Advanced | X | 7 | X% |
 
 ## Detailed Results
 
