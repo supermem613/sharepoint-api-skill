@@ -21,7 +21,9 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const PROFILE_DIR = path.join(os.homedir(), '.sharepoint-api-skill', 'browser-profile');
+const DATA_DIR = path.join(os.homedir(), '.sharepoint-api-skill');
+const PROFILE_DIR = path.join(DATA_DIR, 'browser-profile');
+const AUTH_FILE = path.join(DATA_DIR, 'auth.json');
 const LOGIN_TIMEOUT_MS = 300_000; // 5 minutes for interactive login
 const HEADLESS_PROBE_MS = 5_000;  // seconds to wait before falling back to visible
 
@@ -42,9 +44,16 @@ function isLoginUrl(url) {
   }
 }
 
-function parseTenantHost(raw) {
-  let host = raw.replace(/^https?:\/\//, '').replace(/\/+$/, '');
-  return host;
+function parseSiteInput(raw) {
+  const cleaned = raw.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+  const slashIdx = cleaned.indexOf('/');
+  if (slashIdx === -1) {
+    return { tenantHost: cleaned, sitePath: '' };
+  }
+  return {
+    tenantHost: cleaned.substring(0, slashIdx),
+    sitePath: cleaned.substring(slashIdx),
+  };
 }
 
 function buildCookieString(cookies, tenantHost) {
@@ -64,10 +73,11 @@ function buildCookieString(cookies, tenantHost) {
 
 // ── Core auth flow ───────────────────────────────────────────────────────────
 
-async function authenticate(tenantHost, { forceLogin = false } = {}) {
+async function authenticate(tenantHost, { forceLogin = false, sitePath = '' } = {}) {
   ensureDir(PROFILE_DIR);
 
-  const siteUrl = `https://${tenantHost}`;
+  const tenantUrl = `https://${tenantHost}`;
+  const siteUrl = sitePath ? `${tenantUrl}${sitePath}` : tenantUrl;
 
   // First attempt: headless (unless --login forces visible)
   let headless = !forceLogin;
@@ -132,10 +142,15 @@ async function authenticate(tenantHost, { forceLogin = false } = {}) {
   await context.close();
 
   if (!cookieStr) {
-    process.stderr.write(`ERROR: No cookies found for ${siteUrl}.\n`);
+    process.stderr.write(`ERROR: No cookies found for ${tenantUrl}.\n`);
     process.stderr.write('Try running with --login to force a fresh login.\n');
     process.exit(1);
   }
+
+  // Persist auth to file for cross-process use (e.g., Claude Code separate Bash calls)
+  const authData = { SP_SITE: siteUrl, SP_COOKIES: cookieStr };
+  ensureDir(DATA_DIR);
+  fs.writeFileSync(AUTH_FILE, JSON.stringify(authData, null, 2) + '\n');
 
   return { cookieStr, siteUrl };
 }
@@ -166,9 +181,9 @@ async function main() {
   const doLogout = flags.has('--logout');
 
   if (flags.has('--help') || (positional.length === 0 && !doLogout)) {
-    process.stderr.write(`Usage: node sp-auth.js <tenant-hostname> [--login] [--logout] [--ps1]\n`);
+    process.stderr.write(`Usage: node sp-auth.js <site-url> [--login] [--logout] [--ps1]\n`);
     process.stderr.write(`\n`);
-    process.stderr.write(`  <tenant-hostname>  e.g. contoso.sharepoint.com\n`);
+    process.stderr.write(`  <site-url>  e.g. contoso.sharepoint.com or contoso.sharepoint.com/teams/MySite\n`);
     process.stderr.write(`  --login            Force visible browser for re-login\n`);
     process.stderr.write(`  --logout           Clear saved browser profile\n`);
     process.stderr.write(`  --ps1              Output PowerShell syntax (default: Bash)\n`);
@@ -177,17 +192,21 @@ async function main() {
 
   // Handle --logout
   if (doLogout) {
+    let cleared = false;
     if (fs.existsSync(PROFILE_DIR)) {
       fs.rmSync(PROFILE_DIR, { recursive: true, force: true });
-      process.stderr.write('🗑️  Browser profile cleared.\n');
-    } else {
-      process.stderr.write('ℹ️  No profile found.\n');
+      cleared = true;
     }
+    if (fs.existsSync(AUTH_FILE)) {
+      fs.rmSync(AUTH_FILE);
+      cleared = true;
+    }
+    process.stderr.write(cleared ? '🗑️  Browser profile and auth cleared.\n' : 'ℹ️  No profile found.\n');
     process.exit(0);
   }
 
-  const tenantHost = parseTenantHost(positional[0]);
-  const { cookieStr, siteUrl } = await authenticate(tenantHost, { forceLogin });
+  const { tenantHost, sitePath } = parseSiteInput(positional[0]);
+  const { cookieStr, siteUrl } = await authenticate(tenantHost, { forceLogin, sitePath });
 
   if (usePowerShell) {
     outputPowerShell(cookieStr, siteUrl);

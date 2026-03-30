@@ -22,25 +22,24 @@ Interact with any SharePoint Online site directly via SharePoint REST API and Mi
 
 ### Authenticate
 
-**Bash:**
 ```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com
-```
-
-**PowerShell:**
-```powershell
-. .\scripts\sp-auth-wrapper.ps1 contoso.sharepoint.com
+source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/MySite
 ```
 
 First run opens Edge for login (one-time). After that, auth is automatic and instant — your login persists in a local browser profile.
 
-This extracts session cookies via Playwright and sets `SP_COOKIES` and `SP_SITE`. You get full SP REST API access — same permissions as your browser session.
+Auth credentials are saved to `~/.sharepoint-api-skill/auth.json`, so all subsequent `sp-get.js` / `sp-post.js` calls work automatically — even in separate shell sessions (no need to `source` again).
+
+**Site paths**: Include the site path after the hostname to target sub-sites:
+```bash
+source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/teams/MyTeam
+```
 
 ### Login / Logout
 
 ```bash
 source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com --login   # Force re-login
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com --logout  # Clear saved profile
+source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com --logout  # Clear saved profile + auth
 ```
 
 > **Note:** For dogfood/test tenants (e.g., `contoso.sharepoint-df.com`), use the full hostname.
@@ -58,7 +57,7 @@ All scripts are in `scripts/` and run on Node.js (18+) — cross-platform, zero 
 | `graph-get.js` | Microsoft Graph GET | `node scripts/graph-get.js "/v1.0/me"` |
 | `graph-post.js` | Microsoft Graph POST/PATCH/DELETE | `node scripts/graph-post.js "/v1.0/me/sendMail" '{...}'` |
 
-`sp-get.js` and `sp-post.js` use the `SP_COOKIES` set by `sp-auth-wrapper`. They also support `SP_TOKEN` (bearer) if set.
+All scripts auto-load auth from `~/.sharepoint-api-skill/auth.json` (written by `sp-auth-wrapper`). Env vars (`SP_SITE`, `SP_COOKIES`, `SP_TOKEN`) override the file if set.
 
 ## Quick Reference — 10 Most Common Operations
 

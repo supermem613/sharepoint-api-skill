@@ -6,10 +6,13 @@
 //         node graph-get.js "/v1.0/me"
 //         node graph-get.js "/beta/sites?search=contoso"
 //
-// Requires: GRAPH_TOKEN (set via: source ./sp-auth-wrapper.sh <tenant>)
+// Requires: GRAPH_TOKEN
+// Auth is auto-loaded from ~/.sharepoint-api-skill/auth.json or env vars.
 // Outputs:  JSON response to stdout
 // ============================================================================
 'use strict';
+
+const { GRAPH_TOKEN } = require('./sp-env');
 
 const endpoint = process.argv[2];
 
@@ -19,9 +22,8 @@ if (!endpoint) {
   process.exit(1);
 }
 
-const GRAPH_TOKEN = process.env.GRAPH_TOKEN;
 if (!GRAPH_TOKEN) {
-  process.stderr.write('ERROR: GRAPH_TOKEN is not set. Run: source ./sp-auth-wrapper.sh <tenant>.sharepoint.com\n');
+  process.stderr.write('ERROR: GRAPH_TOKEN is not set. Set GRAPH_TOKEN env var or add to ~/.sharepoint-api-skill/auth.json\n');
   process.exit(1);
 }
 
