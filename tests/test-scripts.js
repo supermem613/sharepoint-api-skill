@@ -264,7 +264,73 @@ describe('graph-post.js method override', () => {
 });
 
 // ============================================================================
-// 11. No external npm dependencies (require of local sp-env is OK)
+// 11. sp-auth.js token extraction from browser session
+// ============================================================================
+describe('sp-auth.js token extraction', () => {
+  const content = readScript('sp-auth.js');
+
+  it('intercepts network requests for Bearer tokens', () => {
+    assert.match(content, /\.on\(['"]request['"]/, 'sp-auth.js should register request interceptor');
+  });
+
+  it('captures Graph tokens from graph.microsoft.com requests', () => {
+    assert.match(content, /graph\.microsoft\.com/, 'sp-auth.js should look for Graph tokens');
+  });
+
+  it('captures SP tokens from sharepoint requests', () => {
+    assert.match(content, /\.sharepoint\./, 'sp-auth.js should look for SP tokens');
+  });
+
+  it('has MSAL cache scan fallback (extractMsalTokens)', () => {
+    assert.match(content, /extractMsalTokens/, 'sp-auth.js should have MSAL cache scan');
+  });
+
+  it('scans sessionStorage for access tokens', () => {
+    assert.match(content, /sessionStorage/, 'sp-auth.js should scan sessionStorage');
+  });
+
+  it('scans localStorage for access tokens', () => {
+    assert.match(content, /localStorage/, 'sp-auth.js should scan localStorage');
+  });
+
+  it('checks token expiry before using cached tokens', () => {
+    assert.match(content, /expiresOn/, 'sp-auth.js should check token expiry');
+  });
+
+  it('outputs GRAPH_TOKEN in bash format', () => {
+    assert.match(content, /GRAPH_TOKEN/, 'sp-auth.js should output GRAPH_TOKEN');
+  });
+
+  it('outputs SP_TOKEN in bash format', () => {
+    assert.match(content, /SP_TOKEN/, 'sp-auth.js should output SP_TOKEN');
+  });
+
+  it('does not use any external OAuth client IDs', () => {
+    // Must not contain Azure CLI or other well-known client IDs
+    assert.doesNotMatch(content, /04b07795-8ddb-461a-bbee-02f9e1bf7b46/,
+      'sp-auth.js must not use Azure CLI client ID');
+  });
+});
+
+// ============================================================================
+// 12. sp-auth-wrapper.sh sets MSYS_NO_PATHCONV
+// ============================================================================
+describe('sp-auth-wrapper.sh MSYS fix', () => {
+  const content = readScript('sp-auth-wrapper.sh');
+
+  it('sets MSYS_NO_PATHCONV=1', () => {
+    assert.match(content, /MSYS_NO_PATHCONV=1/, 'sp-auth-wrapper.sh should set MSYS_NO_PATHCONV=1');
+  });
+
+  it('sets it before the eval line', () => {
+    const msysIdx = content.indexOf('MSYS_NO_PATHCONV');
+    const evalIdx = content.indexOf('eval $(');
+    assert.ok(msysIdx < evalIdx, 'MSYS_NO_PATHCONV should be set before eval');
+  });
+});
+
+// ============================================================================
+// 13. No external npm dependencies (require of local sp-env is OK)
 // ============================================================================
 describe('No external npm dependencies', () => {
   for (const s of ['sp-get.js', 'sp-post.js', 'graph-get.js', 'graph-post.js']) {

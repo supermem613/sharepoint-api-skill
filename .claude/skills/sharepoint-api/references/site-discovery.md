@@ -265,6 +265,7 @@ node scripts/sp-get.js "/_api/v2.1/termstore/sets/{setId}/terms?\$filter=labels/
 
 - Taxonomy fields store a `TermGuid` and `Label` — both are needed when writing values.
 - The term store API (`/_api/v2.1/termstore`) is the modern endpoint; the legacy `/_vti_bin/TaxonomyClientService.svc` is deprecated.
+- **`/_api/v2.1/termstore` requires OAuth bearer token authentication** (SP_TOKEN). Cookie-based auth returns 403. **Preferred alternative:** Use Microsoft Graph: `node scripts/graph-get.js "/v1.0/sites/{siteId}/termStore"` (requires GRAPH_TOKEN, which is captured automatically).
 - Term labels can be multilingual — filter by `languageTag` if needed.
 
 ---

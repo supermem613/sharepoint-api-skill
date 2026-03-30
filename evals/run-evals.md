@@ -60,7 +60,7 @@ After all evals, write the report to `evals/results/report.md`.
 
 ### 47 — Taxonomy
 **Task:** Get the term store or term sets.
-**Checks:** Used sp-get.js · Called /_api/v2.1/termstore · Got response
+**Checks:** Used graph-get.js with /v1.0/sites/{siteId}/termStore OR sp-get.js with /_api/v2.1/termstore (requires SP_TOKEN) · Got response
 
 ### 48 — Content types
 **Task:** List content types on a list.
@@ -241,10 +241,12 @@ After all evals, write the report to `evals/results/report.md`.
 ### 39 — Create rule
 **Task:** Create a list rule.
 **Checks:** Used sp-post.js · POSTed to /SPListRules · Rule created
+**Env-dependent:** If SPListRules returns 404, score ⚠️ PARTIAL — endpoint not available in this environment
 
 ### 40 — Delete rule
 **Task:** Delete the rule from 39.
 **Checks:** Used sp-post.js with DELETE · Success
+**Env-dependent:** If eval 39 was PARTIAL (endpoint unavailable), score ⚠️ PARTIAL with same note
 
 ### 41 — Navigation
 **Task:** Get site navigation nodes.

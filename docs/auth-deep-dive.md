@@ -33,6 +33,33 @@ On Windows machines joined to Azure AD (Entra ID), the Web Account Manager (WAM)
 
 This means on a corp-joined Windows machine, the very first run may complete without any manual login.
 
+## OAuth Token Extraction
+
+In addition to cookies, the auth script extracts OAuth Bearer tokens from the browser session for Graph API and OAuth-only SharePoint endpoints.
+
+### How It Works
+
+1. **Network request interception** — Before navigating to the SP site, a Playwright request listener captures `Authorization: Bearer` headers from requests the page makes to `graph.microsoft.com` and `*.sharepoint.*` during load.
+
+2. **MSAL cache scan** — As a fallback, the script reads the browser's sessionStorage and localStorage for MSAL-cached access token entries (keys containing `accesstoken`, values with `secret` and `expiresOn` fields). Expired tokens are skipped.
+
+3. **Retry with networkidle** — If no Graph token is captured on first navigation, the script reloads the page with `waitUntil: 'networkidle'` to trigger additional API calls.
+
+### Token Properties
+
+| Token | Stored As | Used By | Lifetime |
+|-------|-----------|---------|----------|
+| GRAPH_TOKEN | `auth.json` + env var | `graph-get.js`, `graph-post.js` | ~60 min |
+| SP_TOKEN | `auth.json` + env var | `sp-get.js`, `sp-post.js` (preferred over cookies) | ~60 min |
+
+### Why Both Cookies and Tokens
+
+- **Cookies** (FedAuth, rtFa) — Long-lived (~8-24h), work for all SP REST `/_api/` endpoints except OAuth-only ones.
+- **SP_TOKEN** — Required for endpoints like `/_api/v2.1/termstore` that reject cookie auth.
+- **GRAPH_TOKEN** — Required for Microsoft Graph API calls (search, email, Teams, file sharing).
+
+Token extraction is best-effort: if the browser session doesn't yield tokens, cookie-based auth still works for SP REST.
+
 ## Key SharePoint Cookies
 
 - **FedAuth** — The main authentication cookie. Base64-encoded SAML token. Typically 1000–3000 chars.

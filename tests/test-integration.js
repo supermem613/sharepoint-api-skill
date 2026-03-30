@@ -221,3 +221,56 @@ describe('File Operations', () => {
     assert.ok(content.includes(TEST_PREFIX), `Content mismatch — expected to contain '${TEST_PREFIX}'`);
   });
 });
+
+// ============================================================================
+// Graph API
+// ============================================================================
+// ── Graph helpers ────────────────────────────────────────────────────────────
+function graphGet(endpoint) {
+  return execSync(`node "${join(scriptsDir, 'graph-get.js')}" "${endpoint}"`, {
+    encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'pipe']
+  });
+}
+
+function graphPost(endpoint, body, method) {
+  const args = [`"${join(scriptsDir, 'graph-post.js')}"`, `"${endpoint}"`, `'${body}'`];
+  if (method) args.push(`"${method}"`);
+  return execSync(`node ${args.join(' ')}`, {
+    encoding: 'utf8', timeout: 30000, stdio: ['pipe', 'pipe', 'pipe']
+  });
+}
+
+describe('Graph API', () => {
+  const GRAPH_TOKEN = process.env.GRAPH_TOKEN;
+
+  it('GET /v1.0/me returns user info', { skip: !GRAPH_TOKEN && 'No GRAPH_TOKEN' }, () => {
+    const user = JSON.parse(graphGet('/v1.0/me'));
+    assert.ok(user.displayName, 'Missing displayName');
+  });
+
+  it('POST /v1.0/search/query returns results', { skip: !GRAPH_TOKEN && 'No GRAPH_TOKEN' }, () => {
+    const body = JSON.stringify({
+      requests: [{ entityTypes: ['driveItem'], query: { queryString: '*' }, size: 1 }]
+    });
+    const result = JSON.parse(graphPost('/v1.0/search/query', body));
+    assert.ok(result.value, 'No value in search response');
+  });
+});
+
+// ============================================================================
+// Taxonomy via Graph (/_api/v2.1/termstore requires OAuth-only, use Graph instead)
+// ============================================================================
+describe('Taxonomy via Graph', () => {
+  const GRAPH_TOKEN = process.env.GRAPH_TOKEN;
+
+  it('GET /v1.0/sites/{siteId}/termStore returns term store', { skip: !GRAPH_TOKEN && 'No GRAPH_TOKEN' }, () => {
+    // First resolve the site ID
+    const hostname = new URL(SP_SITE).hostname;
+    const sitePath = new URL(SP_SITE).pathname;
+    const siteInfo = JSON.parse(graphGet(`/v1.0/sites/${hostname}:${sitePath}`));
+    assert.ok(siteInfo.id, 'Missing site ID');
+    // Then get the term store
+    const termStore = JSON.parse(graphGet(`/v1.0/sites/${siteInfo.id}/termStore`));
+    assert.ok(termStore, 'Expected termStore response');
+  });
+});

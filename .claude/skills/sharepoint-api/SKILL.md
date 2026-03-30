@@ -28,7 +28,9 @@ source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/MySite
 
 First run opens Edge for login (one-time). After that, auth is automatic and instant — your login persists in a local browser profile.
 
-Auth credentials are saved to `~/.sharepoint-api-skill/auth.json`, so all subsequent `sp-get.js` / `sp-post.js` calls work automatically — even in separate shell sessions (no need to `source` again).
+Auth credentials are saved to `~/.sharepoint-api-skill/auth.json`, so all subsequent `sp-get.js` / `sp-post.js` / `graph-get.js` / `graph-post.js` calls work automatically — even in separate shell sessions (no need to `source` again).
+
+The auth script also extracts OAuth tokens (GRAPH_TOKEN, SP_TOKEN) from the browser session for Graph API and OAuth-only SP endpoints. These tokens expire after ~60 minutes; re-run the auth script to refresh.
 
 **Site paths**: Include the site path after the hostname to target sub-sites:
 ```bash
@@ -44,6 +46,15 @@ source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --logout
 
 > **Note:** For dogfood/test tenants (e.g., `contoso.sharepoint-df.com`), use the full hostname.
 
+### Windows / Git Bash
+
+Git Bash (MSYS2) automatically converts arguments that look like Unix paths, which corrupts SharePoint API endpoints like `/_api/web/lists`. The auth wrapper sets `MSYS_NO_PATHCONV=1` automatically when sourced.
+
+If you run scripts directly without sourcing the wrapper, set it manually:
+```bash
+export MSYS_NO_PATHCONV=1
+```
+
 ## Helper Scripts
 
 All scripts are in `scripts/` and run on Node.js (18+) — cross-platform, zero npm dependencies.
@@ -57,7 +68,7 @@ All scripts are in `scripts/` and run on Node.js (18+) — cross-platform, zero 
 | `graph-get.js` | Microsoft Graph GET | `node scripts/graph-get.js "/v1.0/me"` |
 | `graph-post.js` | Microsoft Graph POST/PATCH/DELETE | `node scripts/graph-post.js "/v1.0/me/sendMail" '{...}'` |
 
-All scripts auto-load auth from `~/.sharepoint-api-skill/auth.json` (written by `sp-auth-wrapper`). Env vars (`SP_SITE`, `SP_COOKIES`, `SP_TOKEN`) override the file if set.
+All scripts auto-load auth from `~/.sharepoint-api-skill/auth.json` (written by `sp-auth-wrapper`). Env vars (`SP_SITE`, `SP_COOKIES`, `SP_TOKEN`, `GRAPH_TOKEN`) override the file if set.
 
 ## Quick Reference — 10 Most Common Operations
 
@@ -76,6 +87,8 @@ node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$select=Title,Id,
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items" \
   '{"__metadata":{"type":"SP.Data.{ListName}ListItem"},"Title":"New item","Status":"Active"}'
 ```
+> **Tip:** The `__metadata.type` value is list-specific. Look it up with:
+> `node scripts/sp-get.js "/_api/web/lists(guid'{listId}')?$select=ListItemEntityTypeFullName"`
 
 ### 4. Update a list item
 ```bash

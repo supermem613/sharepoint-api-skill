@@ -6,7 +6,7 @@
 #        . .\sp-auth-wrapper.ps1 contoso.sharepoint.com -Logout
 #
 # First run opens Edge for login (one-time). After that, auth is automatic.
-# Sets: SP_COOKIES, SP_SITE
+# Sets: SP_COOKIES, SP_SITE, GRAPH_TOKEN, SP_TOKEN
 # ============================================================================
 
 param(
