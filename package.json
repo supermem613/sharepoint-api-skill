@@ -1,0 +1,23 @@
+{
+  "name": "sharepoint-api-skill",
+  "version": "1.0.0",
+  "description": "AI skill for SharePoint API automation — works with Claude Code, GitHub Copilot, and Codex",
+  "bin": {
+    "sharepoint-api-skill": "./bin/cli.js"
+  },
+  "scripts": {
+    "auth": "node .claude/skills/sharepoint-api/scripts/sp-auth.js",
+    "login": "node .claude/skills/sharepoint-api/scripts/sp-auth.js --login",
+    "logout": "node .claude/skills/sharepoint-api/scripts/sp-auth.js --logout"
+  },
+  "dependencies": {
+    "playwright": "^1.50.0"
+  },
+  "keywords": ["sharepoint", "claude", "copilot", "codex", "ai", "skill", "mcp", "api"],
+  "author": "Marcus Markiewicz",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/supermem613/sharepoint-api-skill"
+  }
+}

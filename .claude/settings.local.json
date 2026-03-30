@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(source .claude/skills/sharepoint-api/scripts/sp-auth-wrapper.sh microsoft.sharepoint-df.com)",
+      "Bash(tasklist)"
+    ]
+  }
+}
