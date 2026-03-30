@@ -12,6 +12,28 @@ metadata:
 
 Interact with any SharePoint Online site directly via the SharePoint REST API. No browser, no server dependencies — just authenticated HTTP calls.
 
+## Agent Usage (IMPORTANT — read first)
+
+All script paths below are relative to this skill's base directory. When Claude Code loads this skill, it injects a `Base directory for this skill:` header. Use that value as `SKILL_DIR` in all commands.
+
+**Rules for Claude Code:**
+
+1. **Set `SKILL_DIR`** to the base directory shown above. Use it for every script path.
+2. **Omit the leading `/`** from API endpoints — write `_api/web/lists` not `/_api/web/lists`. The scripts prepend it.
+3. **Call `node` directly** for auth — don't `source` the bash wrapper. Each Bash invocation is a fresh shell, so env vars from `source` are lost. Auth persists via `~/.sharepoint-api-skill/auth.json`.
+4. **Chain auth + query** with `&&` into a single Bash call to minimize permission asks.
+5. **Skip auth** if already authenticated to the target site — check `~/.sharepoint-api-skill/auth.json`.
+
+**Single-call pattern** (auth + query combined):
+```bash
+node "$SKILL_DIR/scripts/sp-auth.js" <hostname/site> >/dev/null && node "$SKILL_DIR/scripts/sp-get.js" "_api/web/lists"
+```
+
+**Query-only pattern** (when already authenticated):
+```bash
+node "$SKILL_DIR/scripts/sp-get.js" "_api/web/lists"
+```
+
 ## Setup
 
 ### Prerequisites
@@ -23,35 +45,27 @@ Interact with any SharePoint Online site directly via the SharePoint REST API. N
 ### Authenticate
 
 ```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/MySite
+node "$SKILL_DIR/scripts/sp-auth.js" contoso.sharepoint.com/sites/MySite >/dev/null
 ```
 
 First run opens Edge for login (one-time). After that, auth is automatic and instant — your login persists in a local browser profile.
 
-Auth credentials are saved to `~/.sharepoint-api-skill/auth.json`, so all subsequent `sp-get.js` / `sp-post.js` calls work automatically — even in separate shell sessions (no need to `source` again).
+Auth credentials are saved to `~/.sharepoint-api-skill/auth.json`, so all subsequent `sp-get.js` / `sp-post.js` calls work automatically — even in separate shell sessions.
 
 **Site paths**: Include the site path after the hostname to target sub-sites:
 ```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/teams/MyTeam
+node "$SKILL_DIR/scripts/sp-auth.js" contoso.sharepoint.com/teams/MyTeam >/dev/null
 ```
 
-### Login / Logout
+### Login / Logout (interactive terminal only)
 
+For manual use in a terminal, you can source the bash wrapper:
 ```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --login   # Force re-login
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --logout  # Clear saved profile + auth
+source "$SKILL_DIR/scripts/sp-auth-wrapper.sh" contoso.sharepoint.com/sites/mysite --login   # Force re-login
+source "$SKILL_DIR/scripts/sp-auth-wrapper.sh" contoso.sharepoint.com/sites/mysite --logout  # Clear saved profile + auth
 ```
 
 > **Note:** For dogfood/test tenants (e.g., `contoso.sharepoint-df.com`), use the full hostname.
-
-### Windows / Git Bash
-
-Git Bash (MSYS2) automatically converts arguments that look like Unix paths, which corrupts SharePoint API endpoints like `/_api/web/lists`. The auth wrapper sets `MSYS_NO_PATHCONV=1` automatically when sourced.
-
-If you run scripts directly without sourcing the wrapper, set it manually:
-```bash
-export MSYS_NO_PATHCONV=1
-```
 
 ## Helper Scripts
 
@@ -59,82 +73,82 @@ All scripts are in `scripts/` and run on Node.js (18+) — cross-platform, zero 
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `sp-auth-wrapper.sh` / `.ps1` | Authenticate via Playwright | `source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite` |
-| `sp-auth.js` | Core auth engine (called by wrappers) | `node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite` |
-| `sp-get.js` | SharePoint REST GET | `node scripts/sp-get.js "/_api/web/lists"` |
-| `sp-post.js` | SharePoint REST POST/PATCH/DELETE | `node scripts/sp-post.js "/_api/web/lists" '{"Title":"My List"}'` |
+| `sp-auth-wrapper.sh` / `.ps1` | Authenticate via Playwright | `source "$SKILL_DIR/scripts/sp-auth-wrapper.sh" contoso.sharepoint.com/sites/mysite` |
+| `sp-auth.js` | Core auth engine (called by wrappers) | `node "$SKILL_DIR/scripts/sp-auth.js" contoso.sharepoint.com/sites/mysite` |
+| `sp-get.js` | SharePoint REST GET | `node "$SKILL_DIR/scripts/sp-get.js" "_api/web/lists"` |
+| `sp-post.js` | SharePoint REST POST/PATCH/DELETE | `node "$SKILL_DIR/scripts/sp-post.js" "_api/web/lists" '{"Title":"My List"}'` |
 
-All scripts auto-load auth from `~/.sharepoint-api-skill/auth.json` (written by `sp-auth-wrapper`). Env vars (`SP_SITE`, `SP_COOKIES`) override the file if set.
+All scripts auto-load auth from `~/.sharepoint-api-skill/auth.json` (written by `sp-auth.js`). Env vars (`SP_SITE`, `SP_COOKIES`) override the file if set.
 
 ## Quick Reference — 10 Most Common Operations
 
 ### 1. List all lists and libraries
 ```bash
-node scripts/sp-get.js "/_api/web/lists?\$filter=Hidden eq false&\$select=Id,Title,BaseTemplate,ItemCount"
+node "$SKILL_DIR/scripts/sp-get.js" "_api/web/lists?\$filter=Hidden eq false&\$select=Id,Title,BaseTemplate,ItemCount"
 ```
 
 ### 2. Get items from a list
 ```bash
-node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$select=Title,Id,Status&\$top=100"
+node "$SKILL_DIR/scripts/sp-get.js" "_api/web/lists(guid'{listId}')/items?\$select=Title,Id,Status&\$top=100"
 ```
 
 ### 3. Create a list item
 ```bash
-node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items" \
+node "$SKILL_DIR/scripts/sp-post.js" "_api/web/lists(guid'{listId}')/items" \
   '{"__metadata":{"type":"SP.Data.{ListName}ListItem"},"Title":"New item","Status":"Active"}'
 ```
 > **Tip:** The `__metadata.type` value is list-specific. Look it up with:
-> `node scripts/sp-get.js "/_api/web/lists(guid'{listId}')?$select=ListItemEntityTypeFullName"`
+> `node "$SKILL_DIR/scripts/sp-get.js" "_api/web/lists(guid'{listId}')?\$select=ListItemEntityTypeFullName"`
 
 ### 4. Update a list item
 ```bash
-node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})" \
+node "$SKILL_DIR/scripts/sp-post.js" "_api/web/lists(guid'{listId}')/items({itemId})" \
   '{"Title":"Updated title"}' PATCH
 ```
 
 ### 5. Delete a list item
 ```bash
-node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})" '' DELETE
+node "$SKILL_DIR/scripts/sp-post.js" "_api/web/lists(guid'{listId}')/items({itemId})" '' DELETE
 ```
 
 ### 6. Read a file
 ```bash
-node scripts/sp-get.js "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/\$value"
+node "$SKILL_DIR/scripts/sp-get.js" "_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/\$value"
 ```
 
 ### 7. Upload a file
 ```bash
-node scripts/sp-post.js "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Files/add(url='newfile.txt',overwrite=true)" \
+node "$SKILL_DIR/scripts/sp-post.js" "_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Files/add(url='newfile.txt',overwrite=true)" \
   "File content here"
 ```
 
 ### 8. Search for files
 ```bash
-node scripts/sp-get.js "/_api/search/query?querytext='budget report'&selectproperties='Title,Path,Author,LastModifiedTime'&rowlimit=10"
+node "$SKILL_DIR/scripts/sp-get.js" "_api/search/query?querytext='budget report'&selectproperties='Title,Path,Author,LastModifiedTime'&rowlimit=10"
 ```
 
 ### 9. Get current user
 ```bash
-node scripts/sp-get.js "/_api/web/currentuser?\$select=Id,Title,Email"
+node "$SKILL_DIR/scripts/sp-get.js" "_api/web/currentuser?\$select=Id,Title,Email"
 ```
 
 ### 10. Get site info
 ```bash
-node scripts/sp-get.js "/_api/web?\$select=Title,Url,Description"
+node "$SKILL_DIR/scripts/sp-get.js" "_api/web?\$select=Title,Url,Description"
 ```
 
 ## API Selection Rule
 
 This skill uses the SharePoint REST API exclusively. All operations use `sp-get.js` and `sp-post.js` with browser session cookies.
 
-| Use Case | Script | Auth |
-|----------|--------|------|
-| List CRUD, CAML, views, fields, content types | `sp-get.js` / `sp-post.js` | Cookies — always works |
-| File read/write, folders, rename, move, copy | `sp-get.js` / `sp-post.js` | Cookies — always works |
-| Search | `sp-get.js` (`/_api/search/query`) | Cookies — always works |
-| Pages, recycle bin, navigation, features | `sp-get.js` / `sp-post.js` | Cookies — always works |
-| Users, permissions | `sp-get.js` (`/siteusers`, `/currentuser`) | Cookies — always works |
-| File versions | `sp-get.js` (`/items({id})/versions`) | Cookies — always works |
+| Use Case | Script |
+|----------|--------|
+| List CRUD, CAML, views, fields, content types | `sp-get.js` / `sp-post.js` |
+| File read/write, folders, rename, move, copy | `sp-get.js` / `sp-post.js` |
+| Search | `sp-get.js` (`_api/search/query`) |
+| Pages, recycle bin, navigation, features | `sp-get.js` / `sp-post.js` |
+| Users, permissions | `sp-get.js` (`_api/web/siteusers`, `_api/web/currentuser`) |
+| File versions | `sp-get.js` (`_api/web/lists/.../items({id})/versions`) |
 
 ## Reference Files
 

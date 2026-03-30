@@ -14,4 +14,8 @@
 export MSYS_NO_PATHCONV=1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Git Bash pwd returns /c/Users/... which Node misreads. Convert to c:/Users/...
+case "$SCRIPT_DIR" in
+  /[a-zA-Z]/*) SCRIPT_DIR="${SCRIPT_DIR:1:1}:${SCRIPT_DIR:2}" ;;
+esac
 eval $(node "$SCRIPT_DIR/sp-auth.js" "$@")

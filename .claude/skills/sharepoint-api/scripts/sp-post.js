@@ -18,15 +18,18 @@
 
 const { SP_SITE, SP_TOKEN, SP_COOKIES } = require('./sp-env');
 
-const endpoint = process.argv[2];
+let endpoint = process.argv[2];
 const body = process.argv[3] ?? '';
 const methodOverride = process.argv[4] ?? '';
 
 if (!endpoint || process.argv.length < 4) {
   process.stderr.write('ERROR: Missing arguments.\n');
-  process.stderr.write('Usage: node sp-post.js "/_api/..." \'{json_body}\' [METHOD_OVERRIDE]\n');
+  process.stderr.write('Usage: node sp-post.js "_api/..." \'{json_body}\' [METHOD_OVERRIDE]\n');
   process.exit(1);
 }
+
+// Accept endpoints with or without leading slash
+if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
 
 if (!SP_SITE) {
   process.stderr.write('ERROR: SP_SITE is not set. Run: source ./sp-auth-wrapper.sh <tenant>.sharepoint.com\n');

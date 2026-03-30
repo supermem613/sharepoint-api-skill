@@ -13,13 +13,16 @@
 
 const { SP_SITE, SP_TOKEN, SP_COOKIES } = require('./sp-env');
 
-const endpoint = process.argv[2];
+let endpoint = process.argv[2];
 
 if (!endpoint) {
   process.stderr.write('ERROR: Missing endpoint.\n');
-  process.stderr.write('Usage: node sp-get.js "/_api/web/lists"\n');
+  process.stderr.write('Usage: node sp-get.js "_api/web/lists"\n');
   process.exit(1);
 }
+
+// Accept endpoints with or without leading slash
+if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
 
 if (!SP_SITE) {
   process.stderr.write('ERROR: SP_SITE is not set. Run: source ./sp-auth-wrapper.sh <tenant>.sharepoint.com\n');

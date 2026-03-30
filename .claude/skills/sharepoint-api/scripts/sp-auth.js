@@ -16,7 +16,13 @@
 // ============================================================================
 'use strict';
 
-const { chromium } = require('playwright');
+let chromium;
+try {
+  ({ chromium } = require('playwright'));
+} catch {
+  process.stderr.write('ERROR: playwright is not installed.\nRun: npm install    (in the skill directory)\n');
+  process.exit(1);
+}
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
