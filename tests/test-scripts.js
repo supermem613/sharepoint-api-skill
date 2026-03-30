@@ -48,13 +48,7 @@ function readScript(scriptName) {
 // 1. File existence
 // ============================================================================
 describe('File existence', () => {
-  for (const s of ['sp-get.js', 'sp-post.js', 'sp-auth.js']) {
-    it(`${s} exists`, () => {
-      assert.ok(existsSync(join(scriptsDir, s)), `${s} not found`);
-    });
-  }
-
-  for (const s of ['sp-auth-wrapper.ps1', 'sp-auth-wrapper.sh']) {
+  for (const s of ['sp-get.js', 'sp-post.js', 'sp-auth.js', 'sp-env.js', 'sp-fetch.js']) {
     it(`${s} exists`, () => {
       assert.ok(existsSync(join(scriptsDir, s)), `${s} not found`);
     });
@@ -65,17 +59,12 @@ describe('File existence', () => {
 // 2. Shebang line
 // ============================================================================
 describe('Has shebang line', () => {
-  for (const s of ['sp-get.js', 'sp-post.js', 'sp-auth.js']) {
+  for (const s of ['sp-get.js', 'sp-post.js', 'sp-auth.js', 'sp-env.js']) {
     it(`${s} has node shebang`, () => {
       const first = readScript(s).split(/\r?\n/)[0];
       assert.match(first, /node/, `${s} should have node shebang`);
     });
   }
-
-  it('sp-auth-wrapper.sh has #!/bin/bash shebang', () => {
-    const first = readScript('sp-auth-wrapper.sh').split(/\r?\n/)[0];
-    assert.match(first, /^#!\/bin\/bash/, 'sp-auth-wrapper.sh should have #!/bin/bash shebang');
-  });
 });
 
 // ============================================================================
@@ -158,8 +147,8 @@ describe('sp-auth.js validation', () => {
     assert.match(content, /--logout/, 'sp-auth.js should handle --logout flag');
   });
 
-  it('sp-auth.js handles --ps1 flag', () => {
-    assert.match(content, /--ps1/, 'sp-auth.js should handle --ps1 flag');
+  it('sp-auth.js writes auth.json', () => {
+    assert.match(content, /auth\.json/, 'sp-auth.js should write auth.json');
   });
 
   it('sp-auth.js has protocol strip logic', () => {
@@ -168,36 +157,34 @@ describe('sp-auth.js validation', () => {
 });
 
 // ============================================================================
-// 7. sp-auth-wrapper.ps1 validation
+// 7. sp-env.js validation
 // ============================================================================
-describe('sp-auth-wrapper.ps1 validation', () => {
-  const content = readScript('sp-auth-wrapper.ps1');
+describe('sp-env.js validation', () => {
+  const content = readScript('sp-env.js');
 
-  it('has param block', () => {
-    assert.match(content, /^\s*param\s*\(/m, 'sp-auth-wrapper.ps1 should have param() block');
+  it('reads from auth.json', () => {
+    assert.match(content, /auth\.json/, 'sp-env.js should read auth.json');
   });
 
-  it('calls sp-auth.js', () => {
-    assert.match(content, /sp-auth\.js/, 'sp-auth-wrapper.ps1 should call sp-auth.js');
-  });
-
-  it('passes --ps1 flag', () => {
-    assert.match(content, /--ps1/, 'sp-auth-wrapper.ps1 should pass --ps1 flag');
+  it('checks environment variables first', () => {
+    assert.match(content, /process\.env/, 'sp-env.js should check process.env');
   });
 });
 
 // ============================================================================
-// 8. sp-auth-wrapper.sh validation
+// 8. No shell scripts in scripts directory
 // ============================================================================
-describe('sp-auth-wrapper.sh validation', () => {
-  const content = readScript('sp-auth-wrapper.sh');
-
-  it('calls sp-auth.js', () => {
-    assert.match(content, /sp-auth\.js/, 'sp-auth-wrapper.sh should call sp-auth.js');
+describe('No shell scripts', () => {
+  it('no .sh files in scripts directory', () => {
+    const files = require('fs').readdirSync(scriptsDir);
+    const shFiles = files.filter(f => f.endsWith('.sh'));
+    assert.deepStrictEqual(shFiles, [], `Unexpected .sh files: ${shFiles.join(', ')}`);
   });
 
-  it('uses eval', () => {
-    assert.match(content, /eval/, 'sp-auth-wrapper.sh should use eval');
+  it('no .ps1 files in scripts directory', () => {
+    const files = require('fs').readdirSync(scriptsDir);
+    const ps1Files = files.filter(f => f.endsWith('.ps1'));
+    assert.deepStrictEqual(ps1Files, [], `Unexpected .ps1 files: ${ps1Files.join(', ')}`);
   });
 });
 
@@ -238,8 +225,8 @@ describe('sp-auth.js token extraction', () => {
     assert.match(content, /\.sharepoint\./, 'sp-auth.js should look for SP tokens');
   });
 
-  it('outputs SP_TOKEN in bash format', () => {
-    assert.match(content, /SP_TOKEN/, 'sp-auth.js should output SP_TOKEN');
+  it('outputs SP_TOKEN in auth.json', () => {
+    assert.match(content, /SP_TOKEN/, 'sp-auth.js should save SP_TOKEN');
   });
 
   it('does not use any external OAuth client IDs', () => {
@@ -249,24 +236,42 @@ describe('sp-auth.js token extraction', () => {
 });
 
 // ============================================================================
-// 11. sp-auth-wrapper.sh sets MSYS_NO_PATHCONV
+// 11. All scripts are Node.js only
 // ============================================================================
-describe('sp-auth-wrapper.sh MSYS fix', () => {
-  const content = readScript('sp-auth-wrapper.sh');
-
-  it('sets MSYS_NO_PATHCONV=1', () => {
-    assert.match(content, /MSYS_NO_PATHCONV=1/, 'sp-auth-wrapper.sh should set MSYS_NO_PATHCONV=1');
-  });
-
-  it('sets it before the eval line', () => {
-    const msysIdx = content.indexOf('MSYS_NO_PATHCONV');
-    const evalIdx = content.indexOf('eval $(');
-    assert.ok(msysIdx < evalIdx, 'MSYS_NO_PATHCONV should be set before eval');
+describe('All scripts are Node.js', () => {
+  it('every file in scripts/ is a .js file', () => {
+    const files = require('fs').readdirSync(scriptsDir);
+    for (const f of files) {
+      assert.ok(f.endsWith('.js'), `Non-JS file found: ${f}`);
+    }
   });
 });
 
 // ============================================================================
-// 12. No external npm dependencies (require of local sp-env is OK)
+// 12. sp-fetch.js validation
+// ============================================================================
+describe('sp-fetch.js validation', () => {
+  const content = readScript('sp-fetch.js');
+
+  it('exports spFetch function', () => {
+    assert.match(content, /spFetch/, 'sp-fetch.js should export spFetch');
+  });
+
+  it('has retry logic', () => {
+    assert.match(content, /RETRYABLE|retry/i, 'sp-fetch.js should have retry logic');
+  });
+
+  it('walks error cause chain', () => {
+    assert.match(content, /\.cause/, 'sp-fetch.js should walk error cause chain');
+  });
+
+  it('produces actionable hints', () => {
+    assert.match(content, /Hint:/, 'sp-fetch.js should include hints in error messages');
+  });
+});
+
+// ============================================================================
+// 13. No external npm dependencies (require of local sp-env is OK)
 // ============================================================================
 describe('No external npm dependencies', () => {
   for (const s of ['sp-get.js', 'sp-post.js']) {

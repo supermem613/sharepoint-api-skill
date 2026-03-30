@@ -10,7 +10,7 @@ SharePoint REST **POST**, **PUT**, **DELETE**, and **PATCH** requests require a 
 
 ### Getting the digest
 
-```bash
+```
 # The sp-post.js script handles this automatically.
 # For manual use:
 DIGEST=$(node scripts/sp-get.js "/_api/contextinfo" | jq -r '.FormDigestValue')
@@ -19,7 +19,7 @@ DIGEST=$(node scripts/sp-get.js "/_api/contextinfo" | jq -r '.FormDigestValue')
 
 ### Manual header usage
 
-```bash
+```
 curl -X POST "$SITE_URL/_api/web/lists" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Accept: application/json;odata=verbose" \
@@ -55,12 +55,12 @@ startswith(FieldName, 'value')
 
 ### Combining options
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists/getbytitle('Tasks')/items?\$select=Title,Id,Status&\$filter=Status eq 'Active'&\$top=50&\$orderby=Created desc"
 ```
 
 
-> **Tip:** In bash, escape `$` with `\$` inside double quotes.
+> **Tip:** When using a shell, escape `$` in OData query parameters to prevent variable interpolation (e.g., `\$select` in bash, `` `$select `` in PowerShell). When calling `sp-get.js` from Node.js code, no escaping is needed.
 
 ---
 
@@ -68,7 +68,7 @@ node scripts/sp-get.js "/_api/web/lists/getbytitle('Tasks')/items?\$select=Title
 
 Responses include `odata.nextLink` when more results are available.
 
-```bash
+```
 URL="/_api/web/lists/getbytitle('LargeList')/items?\$top=100"
 
 while [ -n "$URL" ]; do
@@ -110,7 +110,7 @@ while ($url) {
 
 ### Throttling pattern
 
-```bash
+```
 RESPONSE=$(curl -s -w "\n%{http_code}" "$REQUEST_URL" -H "Authorization: Bearer $TOKEN")
 HTTP_CODE=$(echo "$RESPONSE" | tail -1)
 
@@ -144,7 +144,7 @@ When creating or updating items with `odata=verbose`, include the `__metadata.ty
 
 **Lists:** `SP.List`
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists/getbytitle('Tasks')/items" \
   '{"__metadata":{"type":"SP.Data.TasksListItem"},"Title":"New Task","Status":"Active"}'
 ```
@@ -199,7 +199,7 @@ POST /_api/web/lists/getbytitle('{ListName}')/GetItems
 
 ### Example: Status = 'Active' AND Priority > 2, sorted by Created
 
-```bash
+```
 CAML='<View>
   <ViewFields>
     <FieldRef Name="Title" />
@@ -272,7 +272,7 @@ Each changeset in the multipart body contains individual requests. The `node scr
 - Single quotes inside values must be doubled: `'O''Brien'`
 - Server-relative URLs in functions must be encoded:
 
-```bash
+```
 # Encode the path argument
 node scripts/sp-get.js "/_api/web/getfilebyserverrelativeurl('/sites/my%20site/Shared%20Documents/report.docx')"
 ```

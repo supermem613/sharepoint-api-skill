@@ -17,6 +17,7 @@
 'use strict';
 
 const { SP_SITE, SP_TOKEN, SP_COOKIES } = require('./sp-env');
+const { spFetch } = require('./sp-fetch');
 
 let endpoint = process.argv[2];
 const body = process.argv[3] ?? '';
@@ -32,12 +33,12 @@ if (!endpoint || process.argv.length < 4) {
 if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
 
 if (!SP_SITE) {
-  process.stderr.write('ERROR: SP_SITE is not set. Run: source ./sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite\n');
+  process.stderr.write('ERROR: SP_SITE is not set. Run: node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite\n');
   process.exit(1);
 }
 
 if (!SP_TOKEN && !SP_COOKIES) {
-  process.stderr.write('ERROR: No auth credentials. Run: source ./sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite\n');
+  process.stderr.write('ERROR: No auth credentials. Run: node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite\n');
   process.exit(1);
 }
 
@@ -47,7 +48,7 @@ function authHeaders() {
 }
 
 async function fetchDigest() {
-  const res = await fetch(`${SP_SITE}/_api/contextinfo`, {
+  const res = await spFetch(`${SP_SITE}/_api/contextinfo`, {
     method: 'POST',
     headers: {
       ...authHeaders(),
@@ -96,7 +97,7 @@ async function fetchDigest() {
       fetchOpts.body = body;
     }
 
-    const res = await fetch(url, fetchOpts);
+    const res = await spFetch(url, fetchOpts);
     const resBody = await res.text();
 
     if (res.ok) {
@@ -109,7 +110,7 @@ async function fetchDigest() {
       process.exit(1);
     }
   } catch (err) {
-    process.stderr.write(`ERROR: ${err.message}\n`);
+    process.stderr.write(err.message + '\n');
     process.exit(1);
   }
 })();

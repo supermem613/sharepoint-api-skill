@@ -3,16 +3,17 @@
 // sp-auth.js — Playwright-based SharePoint authentication
 // ============================================================================
 // Usage:
-//   Bash:       eval $(node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite)
-//   PowerShell: node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite --ps1 | Invoke-Expression
+//   node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite
 //
 // First run: opens Edge for login (one-time)
 // Subsequent runs: headless, uses cached profile (instant)
 //
+// Auth is saved to ~/.sharepoint-api-skill/auth.json. All other scripts
+// (sp-get.js, sp-post.js) read from that file automatically.
+//
 // Flags:
 //   --login   Force visible browser for re-login
 //   --logout  Clear saved browser profile
-//   --ps1     Output PowerShell syntax instead of Bash
 // ============================================================================
 'use strict';
 
@@ -196,7 +197,7 @@ async function authenticate(tenantHost, { forceLogin = false, sitePath = '' } = 
 
   await context.close();
 
-  // Persist auth to file for cross-process use (e.g., Claude Code separate Bash calls)
+  // Persist auth to file for cross-process use
   const authData = {
     SP_SITE: siteUrl,
     SP_COOKIES: cookieStr,
@@ -208,22 +209,6 @@ async function authenticate(tenantHost, { forceLogin = false, sitePath = '' } = 
   return { cookieStr, siteUrl, spToken };
 }
 
-// ── Output formatters ────────────────────────────────────────────────────────
-
-function outputBash(cookieStr, siteUrl, spToken) {
-  process.stdout.write(`export SP_COOKIES="${cookieStr}";\n`);
-  process.stdout.write(`export SP_SITE="${siteUrl}";\n`);
-  if (spToken) process.stdout.write(`export SP_TOKEN="${spToken}";\n`);
-  process.stdout.write(`echo "✅ Authenticated to ${siteUrl}";\n`);
-}
-
-function outputPowerShell(cookieStr, siteUrl, spToken) {
-  process.stdout.write(`$env:SP_COOKIES="${cookieStr}";\n`);
-  process.stdout.write(`$env:SP_SITE="${siteUrl}";\n`);
-  if (spToken) process.stdout.write(`$env:SP_TOKEN="${spToken}";\n`);
-  process.stdout.write(`Write-Host "✅ Authenticated to ${siteUrl}";\n`);
-}
-
 // ── CLI entrypoint ───────────────────────────────────────────────────────────
 
 async function main() {
@@ -231,17 +216,18 @@ async function main() {
   const flags = new Set(args.filter(a => a.startsWith('--')));
   const positional = args.filter(a => !a.startsWith('--'));
 
-  const usePowerShell = flags.has('--ps1');
   const forceLogin = flags.has('--login');
   const doLogout = flags.has('--logout');
 
   if (flags.has('--help') || (positional.length === 0 && !doLogout)) {
-    process.stderr.write(`Usage: node sp-auth.js <site-url> [--login] [--logout] [--ps1]\n`);
+    process.stderr.write(`Usage: node sp-auth.js <site-url> [--login] [--logout]\n`);
     process.stderr.write(`\n`);
     process.stderr.write(`  <site-url>  e.g. contoso.sharepoint.com/sites/mysite or contoso.sharepoint.com/teams/myteam\n`);
-    process.stderr.write(`  --login            Force visible browser for re-login\n`);
-    process.stderr.write(`  --logout           Clear saved browser profile\n`);
-    process.stderr.write(`  --ps1              Output PowerShell syntax (default: Bash)\n`);
+    process.stderr.write(`  --login     Force visible browser for re-login\n`);
+    process.stderr.write(`  --logout    Clear saved browser profile\n`);
+    process.stderr.write(`\n`);
+    process.stderr.write(`Auth is saved to ~/.sharepoint-api-skill/auth.json.\n`);
+    process.stderr.write(`All other scripts (sp-get.js, sp-post.js) read from that file automatically.\n`);
     process.exit(0);
   }
 
@@ -261,13 +247,10 @@ async function main() {
   }
 
   const { tenantHost, sitePath } = parseSiteInput(positional[0]);
-  const { cookieStr, siteUrl, spToken } = await authenticate(tenantHost, { forceLogin, sitePath });
+  await authenticate(tenantHost, { forceLogin, sitePath });
 
-  if (usePowerShell) {
-    outputPowerShell(cookieStr, siteUrl, spToken);
-  } else {
-    outputBash(cookieStr, siteUrl, spToken);
-  }
+  process.stderr.write(`✅ Authenticated to ${positional[0]}\n`);
+  process.stderr.write(`   Auth saved to ${AUTH_FILE}\n`);
 }
 
 main().catch(err => {

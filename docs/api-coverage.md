@@ -73,9 +73,6 @@ Complete reference of SharePoint operations supported by this skill.
 | Discover lists/libraries | SP REST | GET | `/_api/web/lists?$filter=Hidden eq false` | site-discovery.md |
 | Get list schema | SP REST | GET | `/_api/web/lists(guid'{id}')/fields?$filter=Hidden eq false` | site-discovery.md |
 | Get list by URL | SP REST | GET | `/_api/web/GetList('{serverRelativeUrl}')` | site-discovery.md |
-| Get taxonomy/term store | SP REST | GET | `/_api/v2.1/termstore` | site-discovery.md |
-| Get term sets | SP REST | GET | `/_api/v2.1/termstore/groups/{groupId}/sets` | site-discovery.md |
-| Get terms | SP REST | GET | `/_api/v2.1/termstore/sets/{setId}/terms` | site-discovery.md |
 | Get regional settings | SP REST | GET | `/_api/web/regionalsettings` | site-discovery.md |
 | Get content types | SP REST | GET | `/_api/web/contenttypes` | site-discovery.md |
 

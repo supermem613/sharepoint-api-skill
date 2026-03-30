@@ -57,7 +57,7 @@ Agent loads SKILL.md (~2K tokens)
             ├─ list-operations.md (list CRUD, CAML, views)
             ├─ file-operations.md (files, folders, versions)
             ├─ search.md (SP Search, KQL)
-            ├─ site-discovery.md (lists, fields, taxonomy)
+            ├─ site-discovery.md (lists, fields, content types)
             ├─ page-operations.md (pages, news)
             ├─ user-permissions.md (users, permissions)
             ├─ advanced-operations.md (rules, recycle bin)
@@ -68,8 +68,7 @@ Agent loads SKILL.md (~2K tokens)
 
 | Script | Purpose |
 |--------|---------|
-| `sp-auth-wrapper.sh` / `.ps1` | Authenticate via Playwright (sets SP_COOKIES, SP_SITE) |
-| `sp-auth.js` | Core auth engine — Playwright persistent context |
+| `sp-auth.js` | Authenticate via Playwright — writes auth.json |
 | `sp-env.js` | Shared auth loader — resolves SP_SITE, SP_COOKIES from env/file |
 | `sp-get.js` | SharePoint REST GET |
 | `sp-post.js` | SharePoint REST POST/PATCH/DELETE (auto-fetches request digest) |
@@ -85,7 +84,7 @@ Agent loads SKILL.md (~2K tokens)
 | `search.md` | SP Search, KQL syntax |
 | `page-operations.md` | Modern pages, news posts, publishing |
 | `user-permissions.md` | Users, permissions |
-| `site-discovery.md` | Site properties, lists, fields, taxonomy |
+| `site-discovery.md` | Site properties, lists, fields, content types |
 | `api-patterns.md` | OData, batching, throttling, CAML |
 | `advanced-operations.md` | Rules, recycle bin, navigation, features |
 
@@ -95,9 +94,9 @@ Agent loads SKILL.md (~2K tokens)
 |----------|--------|-----|
 | Skill vs MCP | Skill | Zero deps, cross-platform, agent flexibility |
 | Auth method | Playwright persistent context | No app registration, zero IT approval, full SP REST access, persistent login |
-| Script language | Both bash + PowerShell + Node.js | Cross-platform requirement |
+| Script language | Node.js only | Cross-platform, no shell dependencies |
 | API approach | SP REST | SP REST for all operations, cookies-based auth |
-| Token parsing | jq with sed fallback | Portable, no additional Python dependency |
+| Token parsing | JSON via Node.js | Built-in, no external tools |
 | Reference files | Lazy-loaded | Token efficiency (~2K base vs ~20K all) |
 
 ### What This Skill Cannot Do

@@ -27,7 +27,7 @@ Reference for operations that resolve users and manage permissions.
 
 ### Current User
 
-```bash
+```
 # Get current user profile
 node scripts/sp-get.js "/_api/web/currentuser?\$select=Id,Title,Email,LoginName,IsSiteAdmin"
 ```
@@ -48,7 +48,7 @@ node scripts/sp-get.js "/_api/web/currentuser?\$select=Id,Title,Email,LoginName,
 
 ### List Site Users (People Only)
 
-```bash
+```
 # PrincipalType 1 = individual users (excludes groups, security groups)
 node scripts/sp-get.js "/_api/web/siteusers?\$filter=PrincipalType eq 1&\$select=Id,Title,Email"
 ```
@@ -58,7 +58,7 @@ node scripts/sp-get.js "/_api/web/siteusers?\$filter=PrincipalType eq 1&\$select
 
 ### Resolve Email → SharePoint User ID
 
-```bash
+```
 # Needed when writing to Person fields — SP requires the numeric user ID
 node scripts/sp-get.js "/_api/web/siteusers?\$filter=Email eq 'user@contoso.com'&\$select=Id"
 ```
@@ -66,7 +66,7 @@ node scripts/sp-get.js "/_api/web/siteusers?\$filter=Email eq 'user@contoso.com'
 
 ### Get User by ID
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/siteusers/getbyid({userId})?\$select=Id,Title,Email"
 ```
 
@@ -77,7 +77,7 @@ node scripts/sp-get.js "/_api/web/siteusers/getbyid({userId})?\$select=Id,Title,
 
 ### List Role Assignments
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/roleassignments?\$expand=Member,RoleDefinitionBindings&\$select=PrincipalId,Member/Title,RoleDefinitionBindings/Name"
 ```
 
@@ -87,7 +87,7 @@ node scripts/sp-get.js "/_api/web/roleassignments?\$expand=Member,RoleDefinition
 
 ### Check If Current User Has a Permission
 
-```bash
+```
 # Full Control mask (High=2147483647, Low=4294967295)
 node scripts/sp-get.js "/_api/web/doesuserhavePermissions(@v)?@v={'High':'2147483647','Low':'4294967295'}"
 ```

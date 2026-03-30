@@ -19,19 +19,19 @@ SP REST search works with browser cookies set by `sp-auth.js`. It requires no be
 
 ### Basic keyword search
 
-```bash
+```
 node scripts/sp-get.js "/_api/search/query?querytext='budget report'&selectproperties='Title,Path,Author,LastModifiedTime'&rowlimit=25"
 ```
 
 ### Search within current site
 
-```bash
+```
 node scripts/sp-get.js "/_api/search/query?querytext='budget report site:$SP_SITE'&selectproperties='Title,Path'"
 ```
 
 ### Search with refiners (facets)
 
-```bash
+```
 node scripts/sp-get.js "/_api/search/query?querytext='*'&refinementfilters='FileType:equals(\"docx\")'&selectproperties='Title,Path,Size'"
 ```
 
@@ -43,7 +43,7 @@ node scripts/sp-get.js "/_api/search/query?querytext='*'&refinementfilters='File
 
 Request refiners to get faceted counts, then apply refinement filters:
 
-```bash
+```
 # Step 1 — request refiners
 node scripts/sp-get.js "/_api/search/query?querytext='*'&refiners='FileType,Author'&rowlimit=0"
 
@@ -114,7 +114,7 @@ Results live at `PrimaryQueryResult.RelevantResults.Table.Rows[]`:
 
 Use `startrow` and `rowlimit`.
 
-```bash
+```
 # Page 1
 node scripts/sp-get.js "/_api/search/query?querytext='report'&startrow=0&rowlimit=25"
 
@@ -126,7 +126,7 @@ node scripts/sp-get.js "/_api/search/query?querytext='report'&startrow=25&rowlim
 
 Use `sortlist` query parameter.
 
-```bash
+```
 node scripts/sp-get.js "/_api/search/query?querytext='report'&sortlist='LastModifiedTime:descending'"
 ```
 
@@ -134,7 +134,7 @@ node scripts/sp-get.js "/_api/search/query?querytext='report'&sortlist='LastModi
 
 Request refiners to get faceted counts, then apply refinement filters:
 
-```bash
+```
 # Step 1 — request refiners
 node scripts/sp-get.js "/_api/search/query?querytext='*'&refiners='FileType,Author'&rowlimit=0"
 

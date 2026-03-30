@@ -54,7 +54,6 @@ This skill teaches AI coding agents to interact with any SharePoint Online site 
 - *"Show the quick launch navigation"*
 - *"Get the recycle bin contents"*
 - *"List content types on the Documents library"*
-- *"Get the term store taxonomy"*
 
 ### Lists and Libraries Management
 - *"Create a new list called 'Project Tracker'"*
@@ -70,7 +69,7 @@ This skill teaches AI coding agents to interact with any SharePoint Online site 
 
 ### Manual
 
-```bash
+```
 git clone https://github.com/supermem613/sharepoint-api-skill
 cd sharepoint-api-skill && npm install
 ```
@@ -96,7 +95,7 @@ Results are written to `evals/results/report.md`. See [`evals/run-evals.md`](eva
 
 ## Tests
 
-```bash
+```
 npm test                    # Static tests (no network)
 npm run test:integration    # Live API tests (requires auth)
 ```
@@ -106,6 +105,10 @@ npm run test:integration    # Live API tests (requires auth)
 - **Node.js 18+**
 - **Microsoft Edge** (Playwright uses your system Edge)
 - `npm install` (one-time, installs Playwright)
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, project structure, and how to modify scripts, evals, and reference docs.
 
 ## License
 

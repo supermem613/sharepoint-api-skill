@@ -38,7 +38,7 @@ All file and folder operations available through the SharePoint REST API.
 
 ### Read file content by server-relative path (SP REST)
 
-```bash
+```
 # Returns raw file content
 node scripts/sp-get.js "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/\$value"
 ```
@@ -54,7 +54,7 @@ node scripts/sp-get.js "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shar
 
 ### Create or overwrite a text file — small files (< 4 MB)
 
-```bash
+```
 # SP REST — add file to a folder
 node scripts/sp-post.js \
   "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Files/add(url='newfile.txt',overwrite=true)" \
@@ -74,13 +74,13 @@ node scripts/sp-post.js \
 
 ### List subfolders (SP REST)
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Folders"
 ```
 
 ### List files in a folder (SP REST)
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/Files"
 ```
 
@@ -95,7 +95,7 @@ node scripts/sp-get.js "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Sh
 
 ### Create a folder (SP REST)
 
-```bash
+```
 # Create a folder inside an existing folder using folders/add
 node scripts/sp-post.js \
   "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/folders/add('NewFolder')" \
@@ -114,7 +114,7 @@ node scripts/sp-post.js \
 
 ### Rename a file (SP REST — PATCH)
 
-```bash
+```
 node scripts/sp-post.js \
   "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/old.txt')" \
   '{"Name":"new.txt"}' \
@@ -123,7 +123,7 @@ node scripts/sp-post.js \
 
 ### Rename a folder (SP REST — PATCH)
 
-```bash
+```
 node scripts/sp-post.js \
   "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents/OldFolder')" \
   '{"Name":"NewFolder"}' \
@@ -136,7 +136,7 @@ node scripts/sp-post.js \
 
 ### Move a file (SP REST)
 
-```bash
+```
 node scripts/sp-post.js \
   "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/moveto(newurl='/sites/mysite/Archive/doc.txt',flags=1)" \
   ''
@@ -146,7 +146,7 @@ node scripts/sp-post.js \
 
 ### Copy a file (SP REST)
 
-```bash
+```
 node scripts/sp-post.js \
   "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/copyto(strnewurl='/sites/mysite/Archive/doc.txt',boverwrite=true)" \
   ''
@@ -162,7 +162,7 @@ node scripts/sp-post.js \
 
 ### Delete to recycle bin (SP REST)
 
-```bash
+```
 node scripts/sp-post.js \
   "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')/recycle" \
   ''
@@ -170,7 +170,7 @@ node scripts/sp-post.js \
 
 ### Permanent delete (SP REST)
 
-```bash
+```
 node scripts/sp-post.js \
   "/_api/web/getfilebyserverrelativeurl('/sites/mysite/Shared Documents/doc.txt')" \
   '' \
@@ -187,7 +187,7 @@ node scripts/sp-post.js \
 
 ### Set folder color (SP REST)
 
-```bash
+```
 node scripts/sp-post.js \
   "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents/MyFolder')/ListItemAllFields" \
   '{"_ColorHex":"#038387"}' \
@@ -216,7 +216,7 @@ Set to empty string (`""`) to remove the color.
 
 ### Get version history (SP REST)
 
-```bash
+```
 # File versions via SP REST (works with browser cookies)
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items({itemId})/versions"
 ```
@@ -227,7 +227,7 @@ node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items({itemId})/versions
 
 ### SP Search API
 
-```bash
+```
 node scripts/sp-get.js "/_api/search/query?querytext='content search term'&selectproperties='Title,Path,Author,Size'"
 ```
 

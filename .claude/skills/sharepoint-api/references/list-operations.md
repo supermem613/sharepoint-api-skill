@@ -52,7 +52,7 @@ Reference for all list-related SharePoint REST API operations.
 
 ### Basic retrieval (`get_list_data`, `list_items`)
 
-```bash
+```
 # Get items with selected fields
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$select=Title,Id,Status&\$top=100"
 
@@ -70,7 +70,7 @@ node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items({itemId})"
 
 Use `$top` and `$skiptoken` for paging through large result sets:
 
-```bash
+```
 # First page
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$top=100"
 
@@ -80,7 +80,7 @@ node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$top=100&\$skipto
 
 ### Expanding lookup fields
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$select=Title,Category/Title&\$expand=Category"
 ```
 
@@ -88,7 +88,7 @@ node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$select=Title,Cat
 
 Use `POST` to `GetItems` when OData `$filter` is insufficient:
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/GetItems" '{
   "query": {
     "__metadata": {"type": "SP.CamlQuery"},
@@ -103,7 +103,7 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/GetItems" '{
 
 ### Single item (`create_list_items`)
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items" '{
   "__metadata": {"type": "SP.Data.{ListName}ListItem"},
   "Title": "New Item",
@@ -118,7 +118,7 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items" '{
 
 The entity type name follows the pattern `SP.Data.{InternalListName}ListItem`. To find it:
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')?\$select=ListItemEntityTypeFullName"
 ```
 
@@ -145,7 +145,7 @@ The response `ListItemEntityTypeFullName` value is the string to use.
 
 ### Single item update (`update_list_items`)
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})" '{
   "__metadata": {"type": "SP.Data.{ListName}ListItem"},
   "Title": "Updated Title",
@@ -162,7 +162,7 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})" '{
 
 For updating multiple items, use the `$batch` endpoint:
 
-```bash
+```
 # Build a batch request body — each changeset updates one item.
 # The batch boundary and changeset structure are handled by the helper:
 node scripts/sp-post.js "/_api/\$batch" @batch-payload.txt
@@ -177,14 +177,14 @@ PATCH request for a single item. Limit batches to **100 operations** per request
 
 ### Single delete (`delete_list_item`)
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})" '' DELETE
 ```
 
 
 ### Recycle instead of permanent delete
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})/recycle" ''
 ```
 
@@ -192,7 +192,7 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})/recycle
 
 Use the `$batch` endpoint with DELETE operations, or loop recycle calls:
 
-```bash
+```
 # Recycle multiple items by ID
 for id in 1 2 3 4; do
   node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items(${id})/recycle" ''
@@ -205,7 +205,7 @@ done
 
 ### OData `$filter` examples (`find_items`, `search_list_items`)
 
-```bash
+```
 # Text equals
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=Title eq 'Project Alpha'"
 
@@ -244,7 +244,7 @@ See [CAML queries](#caml-queries-for-complex-filtering-find_items) above.
 
 ### Create a list (`create_or_update_list`)
 
-```bash
+```
 # Create a custom list (template 100)
 node scripts/sp-post.js "/_api/web/lists" '{
   "__metadata": {"type": "SP.List"},
@@ -278,7 +278,7 @@ Common `BaseTemplate` values:
 
 ### Update list properties
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')" '{
   "__metadata": {"type": "SP.List"},
   "Title": "Renamed List",
@@ -288,7 +288,7 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')" '{
 
 ### Delete a list (`delete_list`)
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')" '' DELETE
 ```
 
@@ -299,7 +299,7 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')" '' DELETE
 
 ### Get all fields (`get_fields_of_list`)
 
-```bash
+```
 # Non-hidden fields only
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$filter=Hidden eq false"
 
@@ -310,7 +310,7 @@ node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$select=Title,In
 
 ### Add a field
 
-```bash
+```
 # Text field
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/fields" '{
   "__metadata": {"type": "SP.Field"},
@@ -354,7 +354,7 @@ Field type kinds:
 
 ### Delete a field (`delete_field`)
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/fields/getbytitle('{fieldName}')" '' DELETE
 ```
 
@@ -365,13 +365,13 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/fields/getbytitle('{fie
 
 ### Get all views (`get_views_of_list`)
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/views"
 ```
 
 ### Get view details (`get_view_definition`)
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')"
 
 # Include view fields
@@ -381,7 +381,7 @@ node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')/vi
 
 ### Create a view
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/views" '{
   "__metadata": {"type": "SP.View"},
   "Title": "Active Items",
@@ -394,7 +394,7 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/views" '{
 
 ### Update a view
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')" '{
   "__metadata": {"type": "SP.View"},
   "Title": "Renamed View",
@@ -404,13 +404,13 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')" 
 
 ### Delete a view (`delete_view`)
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')" '' DELETE
 ```
 
 ### Apply view formatting (`apply_view_formatting`)
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')/SetViewXml" '{
   "viewXml": "<View><Query><OrderBy><FieldRef Name=\"Modified\" Ascending=\"FALSE\" /></OrderBy></Query><ViewFields><FieldRef Name=\"Title\" /><FieldRef Name=\"Status\" /><FieldRef Name=\"DueDate\" /></ViewFields><RowLimit>30</RowLimit></View>"
 }'
@@ -420,7 +420,7 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/views(guid'{viewId}')/S
 
 Column formatting uses JSON to customize how a field renders:
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/fields/getbytitle('{fieldName}')" '{
   "__metadata": {"type": "SP.Field"},
   "CustomFormatter": "{\"$schema\":\"https://developer.microsoft.com/json-schemas/sp/v2/column-formatting.schema.json\",\"elmType\":\"div\",\"style\":{\"background-color\":\"=if(@currentField == '\''High'\'', '\''#f8d7da'\'', if(@currentField == '\''Medium'\'', '\''#fff3cd'\'', '\''#d4edda'\''))\"},\"txtContent\":\"@currentField\"}"
@@ -433,14 +433,14 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/fields/getbytitle('{fie
 
 ### Get version history (`list_item_versions`)
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items({itemId})/versions"
 ```
 
 
 ### Restore a version (`restore_item_version`)
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})/versions({versionId})/restoreByLabel" ''
 ```
 
@@ -451,24 +451,24 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})/version
 
 ### Get list by title instead of GUID
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists/getbytitle('My List')/items"
 ```
 
 ### Check if a list exists
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists/getbytitle('My List')?\$select=Id,Title"
 ```
 
 ### Get list item count
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')?\$select=ItemCount"
 ```
 
 ### Combine $select, $expand, $filter, $orderby, $top
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$select=Title,Status,AssignedTo/Title,Category/Title&\$expand=AssignedTo,Category&\$filter=Status eq 'Active'&\$orderby=DueDate asc&\$top=50"
 ```

@@ -1,6 +1,6 @@
 # Site Discovery & Structure Reference
 
-> **Scope**: Discovering site structure, lists, libraries, metadata, taxonomy, and user resolution via SharePoint REST API.
+> **Scope**: Discovering site structure, lists, libraries, metadata, and user resolution via SharePoint REST API.
 
 ## Operations Covered
 
@@ -10,7 +10,6 @@
 | Get list schema | Get list schema and metadata |
 | Get fields/columns | Get columns/fields of a list |
 | Get current list context | Identify the current context (which list/library) |
-| Get taxonomy/term sets | Taxonomy and managed metadata resolution |
 | Get lookup info | Lookup field resolution (cross-list references) |
 | Get date/time info | Date/time field formatting and regional settings |
 | Get user info | User resolution (person fields, current user) |
@@ -30,9 +29,6 @@
 /_api/web/lists(guid'{listId}')/contenttypes                 # Content types
 /_api/web/siteusers                                          # Site users
 /_api/web/currentuser                                        # Current user
-/_api/v2.1/termstore                                         # Taxonomy term store
-/_api/v2.1/termstore/groups/{groupId}/sets                   # Term sets
-/_api/v2.1/termstore/sets/{setId}/terms                      # Terms
 ```
 
 ---
@@ -43,7 +39,7 @@ Lists all non-hidden lists and libraries on a site. This is the entry point for 
 
 ### REST API
 
-```bash
+```
 # Get all non-hidden lists and libraries
 node scripts/sp-get.js "/_api/web/lists?\$filter=Hidden eq false&\$select=Id,Title,BaseTemplate,ItemCount,LastItemModifiedDate,Description"
 ```
@@ -91,7 +87,7 @@ Retrieve full metadata about a specific list, including its fields.
 
 ### REST API
 
-```bash
+```
 # Full list info with fields
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')?\$expand=Fields&\$select=Id,Title,Description,ItemCount,Fields/Title,Fields/InternalName,Fields/TypeAsString,Fields/Required,Fields/Choices"
 
@@ -119,8 +115,6 @@ node scripts/sp-get.js "/_api/web/lists/getbytitle('My List')/fields?\$filter=Hi
 | `User` | Person or group |
 | `UserMulti` | Multiple people |
 | `URL` | Hyperlink |
-| `Taxonomy` | Managed metadata (single) |
-| `TaxonomyMulti` | Managed metadata (multi) |
 | `Location` | Location field |
 | `Computed` | Calculated/computed |
 
@@ -136,7 +130,7 @@ node scripts/sp-get.js "/_api/web/lists/getbytitle('My List')/fields?\$filter=Hi
 
 ### REST API
 
-```bash
+```
 # Current site info
 node scripts/sp-get.js "/_api/web?\$select=Title,Url,Description,Language,Created"
 
@@ -153,14 +147,14 @@ Write-Host "Site: $($site.Title) at $($site.Url)"
 
 ### Current User
 
-```bash
+```
 # Current user via REST
 node scripts/sp-get.js "/_api/web/currentuser?\$select=Id,Title,Email,LoginName"
 ```
 
 ### Site Users
 
-```bash
+```
 # All site users (PrincipalType 1 = individual users)
 node scripts/sp-get.js "/_api/web/siteusers?\$select=Id,Title,Email&\$filter=PrincipalType eq 1"
 
@@ -184,39 +178,6 @@ node scripts/sp-get.js "/_api/web/siteusers?\$filter=Email eq 'user@contoso.com'
 
 ---
 
-## Taxonomy / Managed Metadata
-
-### Term Store
-
-```bash
-# Get the term store
-node scripts/sp-get.js "/_api/v2.1/termstore"
-
-# Get term groups
-node scripts/sp-get.js "/_api/v2.1/termstore/groups"
-```
-
-### Term Sets
-
-```bash
-# Get term sets in a group
-node scripts/sp-get.js "/_api/v2.1/termstore/groups/{groupId}/sets"
-
-# Get terms in a term set
-node scripts/sp-get.js "/_api/v2.1/termstore/sets/{setId}/terms"
-
-# Search for a specific term by label
-node scripts/sp-get.js "/_api/v2.1/termstore/sets/{setId}/terms?\$filter=labels/any(a:a/name eq 'term name')"
-```
-
-
-### Notes
-
-- Taxonomy fields store a `TermGuid` and `Label` — both are needed when writing values.
-- The term store API (`/_api/v2.1/termstore`) is the modern endpoint; the legacy `/_vti_bin/TaxonomyClientService.svc` is deprecated.
-- **`/_api/v2.1/termstore` requires OAuth bearer token authentication** (SP_TOKEN). Cookie-based auth returns 403.
-- Term labels can be multilingual — filter by `languageTag` if needed.
-
 ---
 
 ## Lookup Field Resolution
@@ -225,7 +186,7 @@ Lookup fields reference items in another list. Resolving them requires knowing t
 
 ### REST API
 
-```bash
+```
 # Get lookup field details (find target list and field)
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$filter=InternalName eq '{lookupFieldName}'&\$select=LookupList,LookupField,Title,InternalName"
 
@@ -245,7 +206,7 @@ node scripts/sp-get.js "/_api/web/lists(guid'{targetListId}')/items?\$select=Id,
 
 ### REST API
 
-```bash
+```
 # Get regional settings (date format, time zone)
 node scripts/sp-get.js "/_api/web/regionalsettings?\$select=DateFormat,TimeZone,Time24,LocaleId"
 
@@ -266,7 +227,7 @@ Write-Host "Date format: $($regional.DateFormat), 24h: $($regional.Time24)"
 
 ## Location Field Resolution
 
-```bash
+```
 # Location fields use Bing Maps integration — values are JSON objects
 # Read a location field value from a list item
 node scripts/sp-get.js "/_api/web/lists/getbytitle('My List')/items({itemId})?\$select={locationFieldName}"
@@ -300,7 +261,7 @@ Write-Host "Address: $($location.Address.Street), $($location.Address.City)"
 
 ### REST API
 
-```bash
+```
 # List content types for a specific list
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/contenttypes?\$select=Name,Id,Description"
 
@@ -318,7 +279,7 @@ node scripts/sp-get.js "/_api/web/contenttypes?\$select=Name,Id,Description"
 
 ## Site Pages
 
-```bash
+```
 # List site pages
 node scripts/sp-get.js "/_api/web/lists/getbytitle('Site Pages')/items?\$select=Title,FileLeafRef,PromotedState"
 ```
@@ -340,7 +301,7 @@ node scripts/sp-get.js "/_api/web/lists/getbytitle('Site Pages')/items?\$select=
 
 A typical site discovery flow combines multiple calls:
 
-```bash
+```
 # 1. Get site info
 node scripts/sp-get.js "/_api/web?\$select=Title,Url,Description"
 
@@ -350,16 +311,13 @@ node scripts/sp-get.js "/_api/web/lists?\$filter=Hidden eq false&\$select=Id,Tit
 # 3. For each interesting list, get its schema
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$filter=Hidden eq false and ReadOnlyField eq false&\$select=Title,InternalName,TypeAsString,Required"
 
-# 4. Resolve taxonomy fields if present
-node scripts/sp-get.js "/_api/v2.1/termstore/sets/{setId}/terms"
-
-# 5. Resolve lookup field targets
+# 4. Resolve lookup field targets
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$filter=TypeAsString eq 'Lookup'&\$select=InternalName,LookupList,LookupField"
 ```
 
 ### Identifying Current Context
 
-```bash
+```
 # The get_current_list_or_library tool uses the page URL context to determine which list/library the user is viewing
 # For document libraries, the URL path contains the library name
 # For lists, the URL typically contains /Lists/{listName}

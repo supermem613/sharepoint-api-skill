@@ -12,6 +12,7 @@
 'use strict';
 
 const { SP_SITE, SP_TOKEN, SP_COOKIES } = require('./sp-env');
+const { spFetch } = require('./sp-fetch');
 
 let endpoint = process.argv[2];
 
@@ -25,12 +26,12 @@ if (!endpoint) {
 if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
 
 if (!SP_SITE) {
-  process.stderr.write('ERROR: SP_SITE is not set. Run: source ./sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite\n');
+  process.stderr.write('ERROR: SP_SITE is not set. Run: node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite\n');
   process.exit(1);
 }
 
 if (!SP_TOKEN && !SP_COOKIES) {
-  process.stderr.write('ERROR: No auth credentials. Run: source ./sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite\n');
+  process.stderr.write('ERROR: No auth credentials. Run: node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite\n');
   process.exit(1);
 }
 
@@ -45,7 +46,7 @@ if (SP_TOKEN) {
 
 (async () => {
   try {
-    const res = await fetch(url, { method: 'GET', headers });
+    const res = await spFetch(url, { method: 'GET', headers });
     const body = await res.text();
 
     if (res.ok) {
@@ -56,7 +57,7 @@ if (SP_TOKEN) {
       process.exit(1);
     }
   } catch (err) {
-    process.stderr.write(`ERROR: ${err.message}\n`);
+    process.stderr.write(err.message + '\n');
     process.exit(1);
   }
 })();

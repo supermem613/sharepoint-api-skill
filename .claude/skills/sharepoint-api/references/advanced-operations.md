@@ -54,21 +54,21 @@ Advanced SharePoint operations covering rules, workflows, recycle bin, approvals
 
 ### Get recycle bin items
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/recyclebin?\$select=Title,DirName,DeletedByEmail,DeletedDate,Id,ItemType&\$orderby=DeletedDate desc&\$top=50"
 ```
 
 
 ### Restore items from recycle bin
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/recyclebin/restorebyids" '{"ids":["guid1","guid2"]}'
 ```
 
 
 ### Delete permanently from recycle bin
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/recyclebin/deletebyids" '{"ids":["guid1"]}'
 ```
 
@@ -86,14 +86,14 @@ node scripts/sp-post.js "/_api/web/recyclebin/deletebyids" '{"ids":["guid1"]}'
 
 ### Get restorable lists (from recycle bin)
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/recyclebin?\$filter=ItemType eq 3&\$select=Title,Id,DeletedDate,DeletedByEmail,DirName"
 ```
 
 
 ### Restore a deleted list
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/recyclebin('guid')/restore" ''
 ```
 
@@ -112,14 +112,14 @@ SharePoint list rules provide simple automation for email notifications and othe
 
 ### Get rules for a list
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/SPListRules"
 ```
 
 
 ### Create a rule
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/SPListRules" '{
   "Title": "Notify on new items",
   "TriggerType": "ItemAdded",
@@ -132,7 +132,7 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/SPListRules" '{
 
 ### Update a rule
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/SPListRules({ruleId})" '{
   "Title": "Updated rule name",
   "IsActive": false
@@ -142,7 +142,7 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/SPListRules({ruleId})" 
 
 ### Delete a rule
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/SPListRules({ruleId})" '' DELETE
 ```
 
@@ -169,7 +169,7 @@ Full Power Automate management requires the Power Automate Management API, which
 
 ### List subscriptions (webhooks) associated with a list
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/subscriptions"
 ```
 
@@ -188,21 +188,21 @@ Modern approvals in SharePoint are powered by Power Automate. Configuration is d
 
 ### Check if content approval is enabled on a list
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')?&\$select=EnableModeration,Title"
 ```
 
 
 ### Check for moderation status field
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/fields?\$filter=InternalName eq '_ModerationStatus'&\$select=Title,InternalName"
 ```
 
 
 ### Enable content approval on a list
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')" '{"EnableModeration": true}' PATCH
 ```
 
@@ -221,14 +221,14 @@ Quicksteps are pre-configured actions that list users can apply to items with a 
 
 ### Get quicksteps for a list
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/QuickSteps"
 ```
 
 
 ### Create or update a quickstep
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/QuickSteps" '{
   "Title": "Mark as Reviewed",
   "Actions": [
@@ -243,7 +243,7 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/QuickSteps" '{
 
 ### Delete a quickstep
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/QuickSteps({quickstepId})" '' DELETE
 ```
 
@@ -260,28 +260,28 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/QuickSteps({quickstepId
 
 ### Get quick launch navigation nodes
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/navigation/quicklaunch?\$select=Title,Url,Id,IsExternal"
 ```
 
 
 ### Get top navigation bar nodes
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/navigation/topnavigationbar?\$select=Title,Url,Id"
 ```
 
 
 ### Reorder navigation nodes
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/navigation/quicklaunch({nodeId})/moveafterto({afterNodeId})" ''
 ```
 
 
 ### Add a navigation node
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/navigation/quicklaunch" '{
   "Title": "Team Wiki",
   "Url": "/sites/mysite/SitePages/Wiki.aspx",
@@ -292,7 +292,7 @@ node scripts/sp-post.js "/_api/web/navigation/quicklaunch" '{
 
 ### Delete a navigation node
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/navigation/quicklaunch({nodeId})" '' DELETE
 ```
 
@@ -310,21 +310,21 @@ node scripts/sp-post.js "/_api/web/navigation/quicklaunch({nodeId})" '' DELETE
 
 ### Get active site features
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/features?\$select=DisplayName,DefinitionId"
 ```
 
 
 ### Activate a feature
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/features/add('{featureGuid}',true)" ''
 ```
 
 
 ### Deactivate a feature
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/features/remove('{featureGuid}',true)" ''
 ```
 
@@ -341,14 +341,14 @@ node scripts/sp-post.js "/_api/web/features/remove('{featureGuid}',true)" ''
 
 ### Get compliance tag (retention label) on an item
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items({itemId})/ComplianceTag"
 ```
 
 
 ### Apply a retention label to an item
 
-```bash
+```
 node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})/SetComplianceTag" '{
   "complianceTag": "RetentionLabel",
   "isTagPolicyHold": false,
@@ -359,7 +359,7 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/items({itemId})/SetComp
 
 ### Get retirable documents (items with retention labels nearing expiry)
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=OData__ComplianceTag ne null&\$select=Title,FileLeafRef,OData__ComplianceTag,OData__ComplianceTagWrittenTime"
 ```
 
@@ -379,7 +379,7 @@ SharePoint eSignature features are relatively new and may use preview endpoints.
 
 ### List eSign requests
 
-```bash
+```
 node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=ContentTypeId eq '0x010100...eSign'&\$select=Title,Id"
 ```
 
@@ -419,7 +419,7 @@ All SP REST calls may return:
 
 For operations that support batch processing (recycle bin restore/delete), pass multiple IDs in a single call to reduce round-trips:
 
-```bash
+```
 # Restore multiple items at once
 node scripts/sp-post.js "/_api/web/recyclebin/restorebyids" '{"ids":["guid1","guid2","guid3"]}'
 ```

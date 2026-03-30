@@ -8,7 +8,7 @@ This guide covers how to authenticate with SharePoint so the skill can make API 
 
 ### Install Dependencies
 
-```bash
+```
 cd <skill-directory>
 npm install
 ```
@@ -17,16 +17,8 @@ This installs Playwright, which is used for browser-based authentication.
 
 ### First Authentication
 
-**Bash:**
-
-```bash
-source .claude/skills/sharepoint-api/scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite
 ```
-
-**PowerShell:**
-
-```powershell
-. .claude\skills\sharepoint-api\scripts\sp-auth-wrapper.ps1 contoso.sharepoint.com/sites/mysite
+node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite
 ```
 
 Replace `contoso.sharepoint.com/sites/mysite` with your actual site URL.
@@ -35,20 +27,24 @@ On first run, Edge opens a visible browser window. Sign in with your Microsoft a
 
 ### Subsequent Runs
 
-Run the same auth command. It launches Edge headlessly (no visible window), reads the saved profile, extracts cookies, and sets environment variables — typically completing in under 2 seconds.
+Run the same auth command. It launches Edge headlessly (no visible window), reads the saved profile, extracts cookies, and saves them to `~/.sharepoint-api-skill/auth.json` — typically completing in under 2 seconds.
 
-### What Gets Set
+### What Gets Saved
 
-| Variable | Description |
-|----------|-------------|
+Auth credentials are saved to `~/.sharepoint-api-skill/auth.json`:
+
+| Field | Description |
+|-------|-------------|
 | `SP_COOKIES` | FedAuth + rtFa cookies for SharePoint REST API calls |
 | `SP_SITE` | Full site URL (e.g., `https://contoso.sharepoint.com/sites/mysite`) |
+
+All other scripts (`sp-get.js`, `sp-post.js`) read this file automatically.
 
 ### Verify
 
 Run a quick test call to confirm everything is working:
 
-```bash
+```
 node scripts/sp-get.js "/_api/web?$select=Title"
 ```
 
@@ -62,28 +58,16 @@ You should see a JSON response containing your site's title.
 
 If your session expires or you need to switch accounts:
 
-**Bash:**
-```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --login
 ```
-
-**PowerShell:**
-```powershell
-. .\scripts\sp-auth-wrapper.ps1 contoso.sharepoint.com/sites/mysite -Login
+node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite --login
 ```
 
 ### Clear Saved Profile
 
 To delete the cached browser profile entirely:
 
-**Bash:**
-```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --logout
 ```
-
-**PowerShell:**
-```powershell
-. .\scripts\sp-auth-wrapper.ps1 contoso.sharepoint.com/sites/mysite -Logout
+node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite --logout
 ```
 
 The profile is stored at `~/.sharepoint-api-skill/browser-profile/`. The `--logout` flag deletes this directory.
@@ -100,8 +84,8 @@ Playwright requires Microsoft Edge to be installed. Install Edge from [microsoft
 
 Your saved session may have expired. Force a fresh login:
 
-```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --login
+```
+node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite --login
 ```
 
 ### "No cookies found for tenant"
@@ -120,9 +104,9 @@ You do not have permission to the requested resource. Check with your SharePoint
 
 ### Clear profile and start fresh
 
-```bash
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --logout
-source ./scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite --login
+```
+node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite --logout
+node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite --login
 ```
 
 ### Cookie Expiration
