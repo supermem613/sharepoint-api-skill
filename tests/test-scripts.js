@@ -105,7 +105,7 @@ describe('Error on missing environment variables', () => {
   });
 
   it('sp-get.js fails when SP_TOKEN and SP_COOKIES are both missing', () => {
-    const r = runScript('sp-get.js', ['/_api/web'], { SP_SITE: 'https://test.sharepoint.com' });
+    const r = runScript('sp-get.js', ['/_api/web'], { SP_SITE: 'https://test.sharepoint.com/sites/testsite' });
     assert.notStrictEqual(r.exitCode, 0);
     assert.match(r.stderr, /auth/, 'Error should mention auth');
   });
@@ -117,7 +117,7 @@ describe('Error on missing environment variables', () => {
   });
 
   it('sp-post.js fails when SP_TOKEN and SP_COOKIES are both missing', () => {
-    const r = runScript('sp-post.js', ['/_api/web/lists', '{}'], { SP_SITE: 'https://test.sharepoint.com' });
+    const r = runScript('sp-post.js', ['/_api/web/lists', '{}'], { SP_SITE: 'https://test.sharepoint.com/sites/testsite' });
     assert.notStrictEqual(r.exitCode, 0);
     assert.match(r.stderr, /auth/, 'Error should mention auth');
   });

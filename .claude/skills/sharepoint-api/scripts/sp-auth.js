@@ -3,8 +3,8 @@
 // sp-auth.js — Playwright-based SharePoint authentication
 // ============================================================================
 // Usage:
-//   Bash:       eval $(node scripts/sp-auth.js contoso.sharepoint.com)
-//   PowerShell: node scripts/sp-auth.js contoso.sharepoint.com --ps1 | Invoke-Expression
+//   Bash:       eval $(node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite)
+//   PowerShell: node scripts/sp-auth.js contoso.sharepoint.com/sites/mysite --ps1 | Invoke-Expression
 //
 // First run: opens Edge for login (one-time)
 // Subsequent runs: headless, uses cached profile (instant)
@@ -238,7 +238,7 @@ async function main() {
   if (flags.has('--help') || (positional.length === 0 && !doLogout)) {
     process.stderr.write(`Usage: node sp-auth.js <site-url> [--login] [--logout] [--ps1]\n`);
     process.stderr.write(`\n`);
-    process.stderr.write(`  <site-url>  e.g. contoso.sharepoint.com or contoso.sharepoint.com/teams/MySite\n`);
+    process.stderr.write(`  <site-url>  e.g. contoso.sharepoint.com/sites/mysite or contoso.sharepoint.com/teams/myteam\n`);
     process.stderr.write(`  --login            Force visible browser for re-login\n`);
     process.stderr.write(`  --logout           Clear saved browser profile\n`);
     process.stderr.write(`  --ps1              Output PowerShell syntax (default: Bash)\n`);

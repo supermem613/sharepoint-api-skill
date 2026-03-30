@@ -32,12 +32,12 @@ if (!endpoint || process.argv.length < 4) {
 if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
 
 if (!SP_SITE) {
-  process.stderr.write('ERROR: SP_SITE is not set. Run: source ./sp-auth-wrapper.sh <tenant>.sharepoint.com\n');
+  process.stderr.write('ERROR: SP_SITE is not set. Run: source ./sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite\n');
   process.exit(1);
 }
 
 if (!SP_TOKEN && !SP_COOKIES) {
-  process.stderr.write('ERROR: No auth credentials. Run: source ./sp-auth-wrapper.sh <tenant>.sharepoint.com\n');
+  process.stderr.write('ERROR: No auth credentials. Run: source ./sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite\n');
   process.exit(1);
 }
 

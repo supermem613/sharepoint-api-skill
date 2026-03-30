@@ -16,8 +16,8 @@ const SP_SITE = process.env.SP_SITE;
 
 if (!SP_SITE || (!SP_COOKIES && !SP_TOKEN)) {
   console.log('⏭️  Skipping integration tests — not authenticated.');
-  console.log('   Run: source scripts/sp-auth-wrapper.sh <tenant>');
-  process.exit(0);
+  console.log('   Run: source scripts/sp-auth-wrapper.sh contoso.sharepoint.com/sites/mysite');
+  process.exit(1);
 }
 
 const TEST_PREFIX = `SPSKILL_TEST_${Date.now()}`;

@@ -1,9 +1,9 @@
 # ============================================================================
 # sp-auth-wrapper.ps1 — Authenticate to SharePoint via Playwright
 # ============================================================================
-# Usage: . .\sp-auth-wrapper.ps1 contoso.sharepoint.com
-#        . .\sp-auth-wrapper.ps1 contoso.sharepoint.com -Login
-#        . .\sp-auth-wrapper.ps1 contoso.sharepoint.com -Logout
+# Usage: . .\sp-auth-wrapper.ps1 contoso.sharepoint.com/sites/mysite
+#        . .\sp-auth-wrapper.ps1 contoso.sharepoint.com/sites/mysite -Login
+#        . .\sp-auth-wrapper.ps1 contoso.sharepoint.com/sites/mysite -Logout
 #
 # First run opens Edge for login (one-time). After that, auth is automatic.
 # Sets: SP_COOKIES, SP_SITE, SP_TOKEN
