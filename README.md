@@ -58,7 +58,7 @@ This skill teaches AI coding agents to interact with any SharePoint Online site 
 
 ### Lists and Libraries Management
 - *"Create a new list called 'Project Tracker'"*
-- *"Delete the temporary test list"*
+- *"Delete the list named Episodes"*
 
 ## Install
 
