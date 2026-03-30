@@ -9,7 +9,7 @@ Advanced SharePoint operations covering rules, workflows, recycle bin, approvals
 | Get rules | List rules/automation on a list | SP REST |
 | Create/update rule | Create or update a list rule | SP REST |
 | Delete rule | Delete a list rule | SP REST |
-| Get workflows | List Power Automate flows for a list | Power Automate / Graph |
+| Get workflows | List Power Automate flows for a list | Power Automate |
 | Create workflow | Create a Power Automate flow | Power Automate |
 | Toggle workflow | Enable or disable a flow | Power Automate |
 | Delete workflow | Delete a flow | Power Automate |
@@ -22,10 +22,10 @@ Advanced SharePoint operations covering rules, workflows, recycle bin, approvals
 | Get quicksteps | List quicksteps on a list | SP REST |
 | Create/update quickstep | Create or update a quickstep | SP REST |
 | Delete quickstep | Delete a quickstep | SP REST |
-| List eSign requests | List eSignature requests | Graph |
-| Create eSign request | Create an eSignature request | Graph |
-| Get eSign agreement | Get eSignature agreement details | Graph |
-| Cancel eSign agreement | Cancel an eSignature agreement | Graph |
+| List eSign requests | List eSignature requests | SP REST (preview) |
+| Create eSign request | Create an eSignature request | SP REST (preview) |
+| Get eSign agreement | Get eSignature agreement details | SP REST (preview) |
+| Cancel eSign agreement | Cancel an eSignature agreement | SP REST (preview) |
 | Retire documents | Retire documents (apply retention) | SP REST |
 | Get retirable documents | Get documents eligible for retirement | SP REST |
 | Filter retirable documents | Filter retirable documents | SP REST |
@@ -165,19 +165,19 @@ node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/SPListRules({ruleId})" 
 
 ## Power Automate Flows
 
-Full Power Automate management requires the Power Automate Management API, which is beyond standard Graph/SP REST scope. Flow creation and management requires complex orchestration through the Power Automate service.
+Full Power Automate management requires the Power Automate Management API, which is beyond standard SP REST scope. Flow creation and management requires complex orchestration through the Power Automate service.
 
 ### List subscriptions (webhooks) associated with a list
 
 ```bash
-node scripts/graph-get.js "/v1.0/sites/{siteId}/lists/{listId}/subscriptions"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/subscriptions"
 ```
 
 
 ### Key notes
 
-- The Graph `subscriptions` endpoint shows webhook-based integrations, which Power Automate flows use under the hood.
-- Creating, toggling, and deleting flows requires the Power Automate APIs (not standard Graph/SP REST).
+- The `subscriptions` endpoint shows webhook-based integrations, which Power Automate flows use under the hood.
+- Creating, toggling, and deleting flows requires the Power Automate APIs (not standard SP REST).
 - Flow management operations require complex orchestration through the Power Automate service.
 
 ---
@@ -375,34 +375,20 @@ node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=OData__Co
 
 ## eSignature
 
-SharePoint eSignature features are relatively new and use a combination of Graph API and SharePoint-specific endpoints. Some operations may be in preview.
+SharePoint eSignature features are relatively new and may use preview endpoints. Some operations may not be available in all environments.
 
 ### List eSign requests
 
 ```bash
-node scripts/graph-get.js "/v1.0/solutions/approval/operations?\$filter=requestType eq 'eSign'"
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=ContentTypeId eq '0x010100...eSign'&\$select=Title,Id"
 ```
 
-
-### Get eSign agreement details
-
-```bash
-node scripts/graph-get.js "/v1.0/solutions/approval/operations/{operationId}"
-```
-
-
-### Cancel an eSign agreement
-
-```bash
-node scripts/graph-post.js "/v1.0/solutions/approval/operations/{operationId}/cancel" ''
-```
-
+> **Note:** eSignature APIs are in preview and may require specific endpoint patterns depending on your environment.
 
 ### Key notes
 
-- eSignature in SharePoint requires appropriate licensing and may require additional API permissions.
-- The Graph eSignature APIs are partially in preview — endpoint paths and behavior may change.
-- The eSignature operations wrap these APIs with additional validation and error handling.
+- eSignature in SharePoint requires appropriate licensing and may require additional permissions.
+- The eSignature APIs are partially in preview — endpoint paths and behavior may change.
 - eSign requests are tied to specific documents in a document library.
 
 ---

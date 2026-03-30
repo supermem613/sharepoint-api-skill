@@ -45,38 +45,22 @@ Complete reference of SharePoint operations supported by this skill.
 | Operation | API | Method | Endpoint | Reference |
 |-----------|-----|--------|----------|-----------|
 | Read file content | SP REST | GET | `/_api/web/getfilebyserverrelativeurl('{path}')/$value` | file-operations.md |
-| Read file content | Graph | GET | `/v1.0/drives/{driveId}/items/{itemId}/content` | file-operations.md |
 | Upload file (< 4 MB) | SP REST | POST | `/_api/.../Files/add(url='{name}',overwrite=true)` | file-operations.md |
-| Upload file (< 4 MB) | Graph | PUT | `/v1.0/drives/{driveId}/items/{parentId}:/{name}:/content` | file-operations.md |
 | Create folder | SP REST | POST | `/_api/web/folders` | file-operations.md |
-| Create folder | Graph | POST | `/v1.0/drives/{driveId}/items/{parentId}/children` | file-operations.md |
 | List folder contents (files) | SP REST | GET | `/_api/web/getfolderbyserverrelativeurl('{path}')/Files` | file-operations.md |
 | List folder contents (subfolders) | SP REST | GET | `/_api/web/getfolderbyserverrelativeurl('{path}')/Folders` | file-operations.md |
-| List folder children | Graph | GET | `/v1.0/drives/{driveId}/items/{folderId}/children` | file-operations.md |
 | Rename file/folder | SP REST | PATCH | `/_api/web/getfilebyserverrelativeurl('{path}')` | file-operations.md |
-| Rename file/folder | Graph | PATCH | `/v1.0/drives/{driveId}/items/{itemId}` | file-operations.md |
 | Move file | SP REST | POST | `/_api/web/getfilebyserverrelativeurl('{path}')/moveto(...)` | file-operations.md |
-| Move file | Graph | PATCH | `/v1.0/drives/{driveId}/items/{itemId}` (parentReference) | file-operations.md |
 | Copy file | SP REST | POST | `/_api/web/getfilebyserverrelativeurl('{path}')/copyto(...)` | file-operations.md |
-| Copy file | Graph | POST | `/v1.0/drives/{driveId}/items/{itemId}/copy` | file-operations.md |
 | Delete file (recycle) | SP REST | POST | `/_api/web/getfilebyserverrelativeurl('{path}')/recycle` | file-operations.md |
 | Delete file (permanent) | SP REST | DELETE | `/_api/web/getfilebyserverrelativeurl('{path}')` | file-operations.md |
-| Delete file | Graph | DELETE | `/v1.0/drives/{driveId}/items/{itemId}` | file-operations.md |
-| Get file versions | Graph | GET | `/v1.0/drives/{driveId}/items/{itemId}/versions` | file-operations.md |
-| Restore file version | Graph | POST | `/v1.0/drives/{driveId}/items/{itemId}/versions/{vId}/restoreVersion` | file-operations.md |
+| Get file versions | SP REST | GET | `/_api/web/lists(guid'{id}')/items({itemId})/versions` | file-operations.md |
 | Set folder color | SP REST | PATCH | `/_api/web/getfolderbyserverrelativeurl('{path}')/ListItemAllFields` | file-operations.md |
-| Share file/folder | Graph | POST | `/v1.0/drives/{driveId}/items/{itemId}/createLink` | user-permissions.md |
-| Create Word document | Graph | PUT | `/v1.0/drives/{driveId}/root:/{path}:/content` | file-operations.md |
 
 ## Search
 
 | Operation | API | Method | Endpoint | Reference |
 |-----------|-----|--------|----------|-----------|
-| Search files (enterprise) | Graph | POST | `/v1.0/search/query` (entityTypes: driveItem) | search.md |
-| Search list items | Graph | POST | `/v1.0/search/query` (entityTypes: listItem) | search.md |
-| Search people | Graph | POST | `/v1.0/search/query` (entityTypes: person) | search.md |
-| Search sites | Graph | POST | `/v1.0/search/query` (entityTypes: site) | search.md |
-| Search messages | Graph | POST | `/v1.0/search/query` (entityTypes: message) | search.md |
 | Site-scoped search | SP REST | GET | `/_api/search/query?querytext='{query}'` | search.md |
 | Search with refiners | SP REST | GET | `/_api/search/query?querytext='{query}'&refiners='{refiners}'` | search.md |
 
@@ -85,13 +69,10 @@ Complete reference of SharePoint operations supported by this skill.
 | Operation | API | Method | Endpoint | Reference |
 |-----------|-----|--------|----------|-----------|
 | Get site info | SP REST | GET | `/_api/web?$select=Title,Url,Description` | site-discovery.md |
-| Get site info | Graph | GET | `/v1.0/sites/{hostname}:{path}` | site-discovery.md |
 | Get site collection info | SP REST | GET | `/_api/site?$select=Id,Url` | site-discovery.md |
 | Discover lists/libraries | SP REST | GET | `/_api/web/lists?$filter=Hidden eq false` | site-discovery.md |
 | Get list schema | SP REST | GET | `/_api/web/lists(guid'{id}')/fields?$filter=Hidden eq false` | site-discovery.md |
 | Get list by URL | SP REST | GET | `/_api/web/GetList('{serverRelativeUrl}')` | site-discovery.md |
-| Resolve site IDs (for Graph) | Graph | GET | `/v1.0/sites/{hostname}:{path}` | site-discovery.md |
-| Get drives (doc libraries) | Graph | GET | `/v1.0/sites/{siteId}/drives` | site-discovery.md |
 | Get taxonomy/term store | SP REST | GET | `/_api/v2.1/termstore` | site-discovery.md |
 | Get term sets | SP REST | GET | `/_api/v2.1/termstore/groups/{groupId}/sets` | site-discovery.md |
 | Get terms | SP REST | GET | `/_api/v2.1/termstore/sets/{setId}/terms` | site-discovery.md |
@@ -119,21 +100,13 @@ Complete reference of SharePoint operations supported by this skill.
 | Get current user | SP REST | GET | `/_api/web/currentuser` | user-permissions.md |
 | List site users | SP REST | GET | `/_api/web/siteusers?$filter=PrincipalType eq 1` | user-permissions.md |
 | Resolve user by email | SP REST | GET | `/_api/web/siteusers?$filter=Email eq '{email}'` | user-permissions.md |
-| Search users | Graph | GET | `/v1.0/users?$search="displayName:{name}"` | user-permissions.md |
 | Get user by ID | SP REST | GET | `/_api/web/siteusers/getbyid({userId})` | user-permissions.md |
-| Share file (create link) | Graph | POST | `/v1.0/drives/{driveId}/items/{itemId}/createLink` | user-permissions.md |
-| Share with specific people | Graph | POST | `/v1.0/drives/{driveId}/items/{itemId}/invite` | user-permissions.md |
-| Check sharing permissions | Graph | GET | `/v1.0/drives/{driveId}/items/{itemId}/permissions` | user-permissions.md |
 | List role assignments | SP REST | GET | `/_api/web/roleassignments?$expand=Member,RoleDefinitionBindings` | user-permissions.md |
 | Check user permission | SP REST | GET | `/_api/web/doesuserhavePermissions(...)` | user-permissions.md |
 
 ## Communication
 
-| Operation | API | Method | Endpoint | Reference |
-|-----------|-----|--------|----------|-----------|
-| Send email | Graph | POST | `/v1.0/me/sendMail` | user-permissions.md |
-| Create Teams chat | Graph | POST | `/v1.0/chats` | user-permissions.md |
-| Send Teams message | Graph | POST | `/v1.0/chats/{chatId}/messages` | user-permissions.md |
+Not supported. Email sending, Teams messaging, and sharing links require the Microsoft Graph API, which this skill does not use.
 
 ## Advanced Operations
 
@@ -155,16 +128,18 @@ Complete reference of SharePoint operations supported by this skill.
 | Get/toggle site features | SP REST | POST | `/_api/web/features/add('{featureGuid}',true)` | advanced-operations.md |
 | Get retention label | SP REST | GET | `/_api/web/lists(guid'{id}')/items({itemId})/ComplianceTag` | advanced-operations.md |
 | Apply retention label | SP REST | POST | `/_api/web/lists(guid'{id}')/items({itemId})/SetComplianceTag` | advanced-operations.md |
-| List eSign requests | Graph | GET | `/v1.0/solutions/approval/operations?$filter=requestType eq 'eSign'` | advanced-operations.md |
-| Get eSign details | Graph | GET | `/v1.0/solutions/approval/operations/{operationId}` | advanced-operations.md |
-| Cancel eSign agreement | Graph | POST | `/v1.0/solutions/approval/operations/{operationId}/cancel` | advanced-operations.md |
+| List eSign requests | SP REST | GET | `/_api/web/lists(guid'{id}')/items?$filter=...` | advanced-operations.md |
 | Configure approvals | SP REST | PATCH | `/_api/web/lists(guid'{id}')` (EnableModeration) | advanced-operations.md |
-| List webhooks/subscriptions | Graph | GET | `/v1.0/sites/{siteId}/lists/{listId}/subscriptions` | advanced-operations.md |
+| List webhooks/subscriptions | SP REST | GET | `/_api/web/lists(guid'{id}')/subscriptions` | advanced-operations.md |
 
 ## Not Supported
 
 | Operation | Why | Workaround |
 |-----------|-----|-----------|
+| Email sending | No SP REST equivalent | Use Outlook or other email tools |
+| Teams messaging | No SP REST equivalent | Use Teams directly |
+| Sharing links | No SP REST equivalent | Share via SharePoint UI |
+| Enterprise-wide search (across all M365) | SP REST search is site-scoped only | Use SharePoint admin or M365 tools |
 | Enterprise RAG grounding | Requires proprietary backend | Agent reads files + reasons directly |
 | UI-only operations (navigate, preview) | No browser at runtime | Not needed for CLI agents |
 | Server-side code execution | Sandboxed environment | Agent runs code locally |

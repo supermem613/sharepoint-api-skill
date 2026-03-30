@@ -1,6 +1,6 @@
 # Site Discovery & Structure Reference
 
-> **Scope**: Discovering site structure, lists, libraries, metadata, taxonomy, and user resolution via SharePoint REST API and Microsoft Graph.
+> **Scope**: Discovering site structure, lists, libraries, metadata, taxonomy, and user resolution via SharePoint REST API.
 
 ## Operations Covered
 
@@ -33,9 +33,6 @@
 /_api/v2.1/termstore                                         # Taxonomy term store
 /_api/v2.1/termstore/groups/{groupId}/sets                   # Term sets
 /_api/v2.1/termstore/sets/{setId}/terms                      # Terms
-/v1.0/sites/{hostname}:{path}                                # Resolve site ID (Graph)
-/v1.0/sites/{siteId}/lists                                   # Lists via Graph
-/v1.0/sites/{siteId}/drives                                  # Document libraries (Graph)
 ```
 
 ---
@@ -147,45 +144,8 @@ node scripts/sp-get.js "/_api/web?\$select=Title,Url,Description,Language,Create
 node scripts/sp-get.js "/_api/site?\$select=Id,Url,PrimaryUri"
 ```
 
-### Graph API
-
-```bash
-# Get site by hostname and path
-node scripts/graph-get.js "/v1.0/sites/{hostname}:{serverRelativePath}?\$select=id,displayName,webUrl,description"
-
-# Example: contoso.sharepoint.com, path /sites/TeamSite
-node scripts/graph-get.js "/v1.0/sites/contoso.sharepoint.com:/sites/TeamSite?\$select=id,displayName,webUrl,description"
-```
-
 Write-Host "Site: $($site.Title) at $($site.Url)"
 ```
-
----
-
-## Resolving Site IDs (for Graph API)
-
-Many Graph API calls require a `siteId`. This section covers how to obtain it.
-
-### REST API / Graph
-
-```bash
-# Get siteId from URL (needed for many Graph calls)
-node scripts/graph-get.js "/v1.0/sites/{hostname}:{serverRelativePath}"
-# Response includes: id (format: {hostname},{siteCollectionId},{webId})
-
-# Get all drives (document libraries) for a site
-node scripts/graph-get.js "/v1.0/sites/{siteId}/drives?\$select=id,name,webUrl"
-
-# Get the default document library drive
-node scripts/graph-get.js "/v1.0/sites/{siteId}/drive?\$select=id,name,webUrl"
-```
-
-
-### Notes
-
-- The Graph `siteId` format is `{hostname},{siteCollectionId},{webId}` — all three parts are needed.
-- A "drive" in Graph corresponds to a document library in SharePoint.
-- The default drive is the primary document library (usually "Documents").
 
 ---
 
@@ -208,16 +168,6 @@ node scripts/sp-get.js "/_api/web/siteusers?\$select=Id,Title,Email&\$filter=Pri
 node scripts/sp-get.js "/_api/web/siteusers?\$filter=Email eq 'user@contoso.com'&\$select=Id"
 ```
 
-### Graph User Search
-
-```bash
-# Search for users by display name
-node scripts/graph-get.js "/v1.0/users?\$search=\"displayName:John\"&\$select=displayName,mail,id"
-
-# Get specific user by email
-node scripts/graph-get.js "/v1.0/users/user@contoso.com?\$select=displayName,mail,id"
-```
-
 ### PrincipalType Values
 
 | Value | Type |
@@ -230,7 +180,6 @@ node scripts/graph-get.js "/v1.0/users/user@contoso.com?\$select=displayName,mai
 ### Notes
 
 - The SharePoint user `Id` (integer) is what person/user fields expect — not the Azure AD GUID.
-- Graph `$search` requires the `ConsistencyLevel: eventual` header.
 - `LoginName` format varies: `i:0#.f|membership|user@contoso.com` (claims-based).
 
 ---
@@ -265,7 +214,7 @@ node scripts/sp-get.js "/_api/v2.1/termstore/sets/{setId}/terms?\$filter=labels/
 
 - Taxonomy fields store a `TermGuid` and `Label` — both are needed when writing values.
 - The term store API (`/_api/v2.1/termstore`) is the modern endpoint; the legacy `/_vti_bin/TaxonomyClientService.svc` is deprecated.
-- **`/_api/v2.1/termstore` requires OAuth bearer token authentication** (SP_TOKEN). Cookie-based auth returns 403. **Preferred alternative:** Use Microsoft Graph: `node scripts/graph-get.js "/v1.0/sites/{siteId}/termStore"` (requires GRAPH_TOKEN, which is captured automatically).
+- **`/_api/v2.1/termstore` requires OAuth bearer token authentication** (SP_TOKEN). Cookie-based auth returns 403.
 - Term labels can be multilingual — filter by `languageTag` if needed.
 
 ---

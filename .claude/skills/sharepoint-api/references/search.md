@@ -1,6 +1,6 @@
 # SharePoint Search API Reference
 
-> **Operations covered:** Enterprise file search, list item search, semantic search, content search, item filtering
+> **Operations covered:** Site-scoped file search, list item search, content search, item filtering
 
 ## Valid Endpoints
 
@@ -9,14 +9,13 @@
 ```
 /_api/search/query?querytext='{query}'                       # SP REST Search (GET) — works with cookies ✅
 /_api/search/query?querytext='{query}'&selectproperties='Title,Path'&rowlimit=25
-/v1.0/search/query                                           # Graph Search (POST) — requires GRAPH_TOKEN
 ```
 
 ---
 
-## SharePoint REST Search API (Preferred — works with cookies)
+## SharePoint REST Search API
 
-SP REST search works with browser cookies set by `sp-auth.js`. **Use this by default** — it requires no bearer token and is always available after authentication.
+SP REST search works with browser cookies set by `sp-auth.js`. It requires no bearer token and is always available after authentication.
 
 ### Basic keyword search
 
@@ -38,77 +37,7 @@ node scripts/sp-get.js "/_api/search/query?querytext='*'&refinementfilters='File
 
 ---
 
-## Microsoft Graph Search API (Enterprise-wide — requires GRAPH_TOKEN)
-
-> **⚠️ Auth requirement:** Graph Search requires a bearer token (`GRAPH_TOKEN` with `Sites.Read.All` scope). Browser cookies do not work for Graph API calls. The `sp-auth.js` script extracts `GRAPH_TOKEN` from the browser session on a best-effort basis — it may not always be available. If `GRAPH_TOKEN` is missing, use SP REST search above instead.
-
-### Search files across SharePoint/OneDrive
-
-```bash
-node scripts/graph-post.js "/v1.0/search/query" '{
-  "requests": [{
-    "entityTypes": ["driveItem"],
-    "query": {"queryString": "budget report Q3"},
-    "from": 0,
-    "size": 25
-  }]
-}'
-```
-
-
-### Search list items
-
-```bash
-node scripts/graph-post.js "/v1.0/search/query" '{
-  "requests": [{
-    "entityTypes": ["listItem"],
-    "query": {"queryString": "contentclass:STS_ListItem_GenericList project plan"},
-    "from": 0,
-    "size": 25
-  }]
-}'
-```
-
-
-### Search people
-
-```bash
-node scripts/graph-post.js "/v1.0/search/query" '{
-  "requests": [{
-    "entityTypes": ["person"],
-    "query": {"queryString": "engineering manager"}
-  }]
-}'
-```
-
-### Search messages (emails, Teams)
-
-```bash
-node scripts/graph-post.js "/v1.0/search/query" '{
-  "requests": [{
-    "entityTypes": ["message"],
-    "query": {"queryString": "budget approval"}
-  }]
-}'
-```
-
-### Search sites
-
-```bash
-node scripts/graph-post.js "/v1.0/search/query" '{
-  "requests": [{
-    "entityTypes": ["site"],
-    "query": {"queryString": "engineering"}
-  }]
-}'
-```
-
-
----
-
-## SharePoint REST Search API (Classic — site-scoped)
-
-> Already covered above as the preferred approach. Additional patterns below for reference.
+## Additional SP REST Search Patterns
 
 ### Refiners (SP REST only)
 
@@ -153,32 +82,6 @@ node scripts/sp-get.js "/_api/search/query?querytext='*'&refinementfilters='File
 
 ## Search Result Processing
 
-### Graph Search response structure
-
-Results live at `hitsContainers[0].hits[]`. Each hit contains a `resource` object:
-
-```jsonc
-{
-  "hitsContainers": [{
-    "total": 142,
-    "moreResultsAvailable": true,
-    "hits": [{
-      "hitId": "...",
-      "rank": 1,
-      "summary": "...highlighted <c0>budget</c0> snippet...",
-      "resource": {
-        "@odata.type": "#microsoft.graph.driveItem",
-        "name": "Q3 Budget Report.docx",
-        "webUrl": "https://...",
-        "lastModifiedDateTime": "2024-09-15T10:30:00Z",
-        "lastModifiedBy": { "user": { "displayName": "Jane Doe" } },
-        "size": 245760
-      }
-    }]
-  }]
-}
-```
-
 ### SP REST Search response structure
 
 Results live at `PrimaryQueryResult.RelevantResults.Table.Rows[]`:
@@ -209,17 +112,7 @@ Results live at `PrimaryQueryResult.RelevantResults.Table.Rows[]`:
 
 ### Pagination
 
-**Graph:** Use `from` (zero-based offset) and `size` (page size).
-
-```bash
-# Page 1
-node scripts/graph-post.js "/v1.0/search/query" '{"requests":[{"entityTypes":["driveItem"],"query":{"queryString":"report"},"from":0,"size":25}]}'
-
-# Page 2
-node scripts/graph-post.js "/v1.0/search/query" '{"requests":[{"entityTypes":["driveItem"],"query":{"queryString":"report"},"from":25,"size":25}]}'
-```
-
-**SP REST:** Use `startrow` and `rowlimit`.
+Use `startrow` and `rowlimit`.
 
 ```bash
 # Page 1
@@ -231,19 +124,7 @@ node scripts/sp-get.js "/_api/search/query?querytext='report'&startrow=25&rowlim
 
 ### Sorting
 
-**Graph:** Use `sortProperties` in the request body.
-
-```bash
-node scripts/graph-post.js "/v1.0/search/query" '{
-  "requests": [{
-    "entityTypes": ["driveItem"],
-    "query": {"queryString": "report"},
-    "sortProperties": [{"name": "lastModifiedDateTime", "isDescending": true}]
-  }]
-}'
-```
-
-**SP REST:** Use `sortlist` query parameter.
+Use `sortlist` query parameter.
 
 ```bash
 node scripts/sp-get.js "/_api/search/query?querytext='report'&sortlist='LastModifiedTime:descending'"

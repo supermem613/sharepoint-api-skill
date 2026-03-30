@@ -6,7 +6,7 @@
 // to ~/.sharepoint-api-skill/auth.json (written by sp-auth.js).
 //
 // Usage:  const env = require('./sp-env');
-//         // env.SP_SITE, env.SP_COOKIES, env.SP_TOKEN, env.GRAPH_TOKEN
+//         // env.SP_SITE, env.SP_COOKIES, env.SP_TOKEN
 // ============================================================================
 'use strict';
 
@@ -34,6 +34,5 @@ module.exports = {
   SP_SITE: resolve('SP_SITE', fileData),
   SP_COOKIES: resolve('SP_COOKIES', fileData),
   SP_TOKEN: resolve('SP_TOKEN', fileData),
-  GRAPH_TOKEN: resolve('GRAPH_TOKEN', fileData),
   AUTH_FILE,
 };

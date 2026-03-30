@@ -27,38 +27,6 @@ const AUTH_FILE = path.join(DATA_DIR, 'auth.json');
 const LOGIN_TIMEOUT_MS = 300_000; // 5 minutes for interactive login
 const HEADLESS_PROBE_MS = 5_000;  // seconds to wait before falling back to visible
 
-// ── Token extraction ─────────────────────────────────────────────────────────
-
-/**
- * Scan sessionStorage and localStorage for MSAL-cached access tokens.
- * Returns { graph, sp } with token strings or null.
- */
-async function extractMsalTokens(page) {
-  return page.evaluate(() => {
-    const tokens = { graph: null, sp: null };
-    const now = Math.floor(Date.now() / 1000);
-
-    function scanStorage(storage) {
-      for (let i = 0; i < storage.length; i++) {
-        const key = storage.key(i);
-        if (!key.includes('accesstoken')) continue;
-        try {
-          const entry = JSON.parse(storage.getItem(key));
-          if (!entry.secret || !entry.expiresOn) continue;
-          if (Number(entry.expiresOn) < now) continue; // expired
-          const target = (entry.target || '').toLowerCase();
-          if (!tokens.graph && target.includes('graph.microsoft.com')) tokens.graph = entry.secret;
-          else if (!tokens.sp && target.includes('.sharepoint.')) tokens.sp = entry.secret;
-        } catch {}
-      }
-    }
-
-    try { scanStorage(sessionStorage); } catch {}
-    try { scanStorage(localStorage); } catch {}
-    return tokens;
-  });
-}
-
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function ensureDir(dir) {
@@ -122,15 +90,13 @@ async function authenticate(tenantHost, { forceLogin = false, sitePath = '' } = 
 
   let page = context.pages()[0] || await context.newPage();
 
-  // Intercept ALL bearer tokens from network requests.
-  // Classify by JWT audience (aud) and prefer the one with the most scopes.
-  const capturedTokens = { graph: null, graphScopes: 0, sp: null, spScopes: 0 };
+  // Intercept bearer tokens from network requests to capture SP tokens.
+  const capturedTokens = { sp: null, spScopes: 0 };
   function classifyToken(token) {
     try {
       const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
       const aud = (payload.aud || '').toLowerCase();
       const scopes = (payload.scp || '').split(' ').length;
-      if (aud.includes('graph.microsoft.com')) return { type: 'graph', scopes };
       if (aud.includes('.sharepoint.')) return { type: 'sp', scopes };
     } catch {}
     return null;
@@ -142,10 +108,7 @@ async function authenticate(tenantHost, { forceLogin = false, sitePath = '' } = 
       const token = auth.substring(7);
       const info = classifyToken(token);
       if (!info) return;
-      if (info.type === 'graph' && info.scopes > capturedTokens.graphScopes) {
-        capturedTokens.graph = token;
-        capturedTokens.graphScopes = info.scopes;
-      } else if (info.type === 'sp' && info.scopes > capturedTokens.spScopes) {
+      if (info.type === 'sp' && info.scopes > capturedTokens.spScopes) {
         capturedTokens.sp = token;
         capturedTokens.spScopes = info.scopes;
       }
@@ -211,34 +174,17 @@ async function authenticate(tenantHost, { forceLogin = false, sitePath = '' } = 
     process.exit(1);
   }
 
-  // Wait for page to fully load (SPFx/MSAL need networkidle to fire API calls)
+  // Wait for page to fully load (SPFx needs networkidle to fire API calls)
   await page.waitForLoadState('networkidle').catch(() => {});
 
-  // Extract OAuth tokens from the browser session (best-effort)
-  // Primary: tokens captured by network request interception above
-  let graphToken = capturedTokens.graph;
+  // Extract SP token from captured network requests
   let spToken = capturedTokens.sp;
 
-  // Fallback: scan MSAL cache in browser storage
-  if (!graphToken || !spToken) {
-    try {
-      const msalTokens = await extractMsalTokens(page);
-      graphToken = graphToken || msalTokens.graph;
-      spToken = spToken || msalTokens.sp;
-    } catch {}
-  }
-
-  // If still missing tokens, reload and wait for all network activity
-  if (!graphToken || !spToken) {
+  // If still missing SP token, reload and wait for all network activity
+  if (!spToken) {
     try {
       await page.goto(siteUrl, { waitUntil: 'networkidle', timeout: 30000 });
-      graphToken = graphToken || capturedTokens.graph;
       spToken = spToken || capturedTokens.sp;
-      if (!graphToken || !spToken) {
-        const retry = await extractMsalTokens(page);
-        graphToken = graphToken || retry.graph;
-        spToken = spToken || retry.sp;
-      }
     } catch {}
   }
 
@@ -248,29 +194,26 @@ async function authenticate(tenantHost, { forceLogin = false, sitePath = '' } = 
   const authData = {
     SP_SITE: siteUrl,
     SP_COOKIES: cookieStr,
-    ...(graphToken && { GRAPH_TOKEN: graphToken }),
     ...(spToken && { SP_TOKEN: spToken }),
   };
   ensureDir(DATA_DIR);
   fs.writeFileSync(AUTH_FILE, JSON.stringify(authData, null, 2) + '\n');
 
-  return { cookieStr, siteUrl, graphToken, spToken };
+  return { cookieStr, siteUrl, spToken };
 }
 
 // ── Output formatters ────────────────────────────────────────────────────────
 
-function outputBash(cookieStr, siteUrl, graphToken, spToken) {
+function outputBash(cookieStr, siteUrl, spToken) {
   process.stdout.write(`export SP_COOKIES="${cookieStr}";\n`);
   process.stdout.write(`export SP_SITE="${siteUrl}";\n`);
-  if (graphToken) process.stdout.write(`export GRAPH_TOKEN="${graphToken}";\n`);
   if (spToken) process.stdout.write(`export SP_TOKEN="${spToken}";\n`);
   process.stdout.write(`echo "✅ Authenticated to ${siteUrl}";\n`);
 }
 
-function outputPowerShell(cookieStr, siteUrl, graphToken, spToken) {
+function outputPowerShell(cookieStr, siteUrl, spToken) {
   process.stdout.write(`$env:SP_COOKIES="${cookieStr}";\n`);
   process.stdout.write(`$env:SP_SITE="${siteUrl}";\n`);
-  if (graphToken) process.stdout.write(`$env:GRAPH_TOKEN="${graphToken}";\n`);
   if (spToken) process.stdout.write(`$env:SP_TOKEN="${spToken}";\n`);
   process.stdout.write(`Write-Host "✅ Authenticated to ${siteUrl}";\n`);
 }
@@ -312,12 +255,12 @@ async function main() {
   }
 
   const { tenantHost, sitePath } = parseSiteInput(positional[0]);
-  const { cookieStr, siteUrl, graphToken, spToken } = await authenticate(tenantHost, { forceLogin, sitePath });
+  const { cookieStr, siteUrl, spToken } = await authenticate(tenantHost, { forceLogin, sitePath });
 
   if (usePowerShell) {
-    outputPowerShell(cookieStr, siteUrl, graphToken, spToken);
+    outputPowerShell(cookieStr, siteUrl, spToken);
   } else {
-    outputBash(cookieStr, siteUrl, graphToken, spToken);
+    outputBash(cookieStr, siteUrl, spToken);
   }
 }
 

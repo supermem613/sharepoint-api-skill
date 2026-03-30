@@ -7,7 +7,7 @@
 #        source ./sp-auth-wrapper.sh contoso.sharepoint.com --logout
 #
 # First run opens Edge for login (one-time). After that, auth is automatic.
-# Sets: SP_COOKIES, SP_SITE, GRAPH_TOKEN, SP_TOKEN
+# Sets: SP_COOKIES, SP_SITE, SP_TOKEN
 # ============================================================================
 
 # Prevent Git Bash (MSYS2) from converting arguments that look like Unix paths

@@ -1,6 +1,6 @@
 # SharePoint API Skill — Evals
 
-Run all 48 evals against a SharePoint site and produce a scored report.
+Run all 42 evals against a SharePoint site and produce a scored report.
 
 ## How to Run
 
@@ -54,13 +54,9 @@ After all evals, write the report to `evals/results/report.md`.
 **Task:** Get site title, URL, and description.
 **Checks:** Used sp-get.js · Called /_api/web · Output shows Title and Url
 
-### 46 — Resolve site ID
-**Task:** Get the Microsoft Graph site ID from the SharePoint URL.
-**Checks:** Used graph-get.js · Called /v1.0/sites/{hostname}:{path} · Got site ID
-
 ### 47 — Taxonomy
 **Task:** Get the term store or term sets.
-**Checks:** Used graph-get.js with /v1.0/sites/{siteId}/termStore OR sp-get.js with /_api/v2.1/termstore (requires SP_TOKEN) · Got response
+**Checks:** Used sp-get.js with /_api/v2.1/termstore (requires SP_TOKEN) · Got response
 **⚠️ Env-dependent: termstore endpoint may not be available on all environments**
 
 ### 48 — Content types
@@ -137,15 +133,15 @@ After all evals, write the report to `evals/results/report.md`.
 
 ### 10 — List files
 **Task:** List files in the default document library with name and size.
-**Checks:** Used sp-get.js or graph-get.js · Called Files or drives/children · Shows filenames
+**Checks:** Used sp-get.js · Called Files endpoint · Shows filenames
 
 ### 11 — Read file
 **Task:** Read content of a text/markdown file.
-**Checks:** Used sp-get.js with /$value or graph-get.js with /content · Shows text content
+**Checks:** Used sp-get.js with /$value · Shows text content
 
 ### 12 — Upload file
 **Task:** Upload "eval-test-upload.txt" with content "Hello from eval".
-**Checks:** Used sp-post.js Files/add or graph PUT · File created
+**Checks:** Used sp-post.js · Files/add · File created
 
 ### 13 — Delete file
 **Task:** Delete eval-test-upload.txt.
@@ -157,30 +153,15 @@ After all evals, write the report to `evals/results/report.md`.
 
 ### 31 — Rename file
 **Task:** Rename a file or folder.
-**Checks:** Used sp-post.js with PATCH or graph PATCH · Name changed
+**Checks:** Used sp-post.js with PATCH · Name changed
 
 ### 32 — Move/copy file
 **Task:** Copy or move a file to another location.
-**Checks:** Used moveto/copyto endpoint or Graph copy · File exists in new location
-
-### 33 — Share file
-**Task:** Create a sharing link for a file.
-**Checks:** Used graph-post.js · Called /createLink · Got sharing URL
-**⚠️ Requires GRAPH_TOKEN with Files.ReadWrite.All scope**
-
-### 34 — File versions
-**Task:** Get version history for a file.
-**Checks:** Used graph-get.js · Called /versions · Shows version list
-**⚠️ Requires GRAPH_TOKEN. Alternative: SP REST `/_api/web/lists(guid'{listId}')/items({itemId})/versions` works with cookies.**
+**Checks:** Used sp-post.js with PATCH or moveto/copyto · File exists in new location
 
 ---
 
 ## Search
-
-### 14 — Graph search
-**Task:** Search for files using Graph Search API.
-**Checks:** Used graph-post.js · Called /v1.0/search/query · Response has hits
-**⚠️ Requires GRAPH_TOKEN with Sites.Read.All scope. Alternative: eval 15 (SP REST search) works with cookies.**
 
 ### 15 — SP REST search
 **Task:** Search using SharePoint REST Search API.
@@ -192,25 +173,15 @@ After all evals, write the report to `evals/results/report.md`.
 
 ### 16 — Current user
 **Task:** Get current user's name, email, and ID.
-**Checks:** Used sp-get.js or graph-get.js · Shows name and email
+**Checks:** Used sp-get.js · Shows name and email
 
 ### 17 — Search users
 **Task:** Find site users or search by name.
-**Checks:** Used /siteusers or /users · Shows user list
+**Checks:** Used sp-get.js or /siteusers · Shows user list
 
 ### 43 — Check permissions
 **Task:** Check site role assignments.
 **Checks:** Used sp-get.js · Called /roleassignments · Shows roles
-
-### 44 — Send email
-**Task:** Send a test email via Graph API.
-**Checks:** Used graph-post.js · Called /me/sendMail · Success (202)
-**⚠️ Requires GRAPH_TOKEN with Mail.Send scope**
-
-### 45 — Send Teams message
-**Task:** Send a Teams message via Graph API.
-**Checks:** Used graph-post.js · Created chat + sent message · Success
-**⚠️ Requires GRAPH_TOKEN with Chat.ReadWrite scope**
 
 ---
 
@@ -272,18 +243,18 @@ After completing all evals, write `evals/results/report.md`:
 # Eval Report — [date]
 
 **Site:** [site URL]
-**Overall:** [passed]/48 ([percentage]%)
+**Overall:** [passed]/42 ([percentage]%)
 
 ## Summary
 
 | Category | Passed | Total | Score |
 |----------|--------|-------|-------|
 | Auth | /1 | |
-| Discovery | /6 | |
+| Discovery | /5 | |
 | List CRUD | /14 | |
-| Files | /9 | |
-| Search | /2 | |
-| Users | /5 | |
+| Files | /7 | |
+| Search | /1 | |
+| Users | /3 | |
 | Pages | /4 | |
 | Advanced | /7 | |
 

@@ -1,6 +1,6 @@
-# SharePoint API Patterns Reference
+# SharePoint REST API Patterns Reference
 
-Common patterns for calling SharePoint REST and Microsoft Graph APIs.
+Common patterns for calling SharePoint REST APIs.
 
 ---
 
@@ -66,8 +66,6 @@ node scripts/sp-get.js "/_api/web/lists/getbytitle('Tasks')/items?\$select=Title
 
 ## 3. Pagination
 
-### SharePoint REST
-
 Responses include `odata.nextLink` when more results are available.
 
 ```bash
@@ -77,20 +75,6 @@ while [ -n "$URL" ]; do
   RESPONSE=$(node scripts/sp-get.js "$URL")
   echo "$RESPONSE" | jq '.value[]'
   URL=$(echo "$RESPONSE" | jq -r '.["odata.nextLink"] // empty')
-done
-```
-
-### Graph API
-
-Responses include `@odata.nextLink` when more results are available.
-
-```bash
-URL="/v1.0/sites/$SITE_ID/lists/$LIST_ID/items?\$top=100"
-
-while [ -n "$URL" ]; do
-  RESPONSE=$(node scripts/graph-get.js "$URL")
-  echo "$RESPONSE" | jq '.value[]'
-  URL=$(echo "$RESPONSE" | jq -r '.["@odata.nextLink"] // empty')
 done
 ```
 
@@ -114,21 +98,11 @@ while ($url) {
 }
 ```
 
-**Graph API:**
-```json
-{
-  "error": {
-    "code": "itemNotFound",
-    "message": "The resource could not be found."
-  }
-}
-```
-
 ### Common HTTP status codes
 
 | Code | Meaning                | Action                                         |
 |------|------------------------|-------------------------------------------------|
-| 401  | Unauthorized           | Token expired — re-run `sp-auth` / `graph-auth` |
+| 401  | Unauthorized           | Cookies expired — re-run `sp-auth`              |
 | 403  | Forbidden              | Check site/list permissions                     |
 | 404  | Not found              | Verify the URL, list name, or item ID           |
 | 429  | Throttled              | Respect `Retry-After` header, then retry        |
@@ -273,33 +247,7 @@ Content-Type: multipart/mixed; boundary=batch_id
 
 Each changeset in the multipart body contains individual requests. The `node scripts/sp-post.js` script does not handle batching — construct the multipart body manually or use a helper.
 
-### Graph API batch
-
-```bash
-node scripts/graph-post.js "/v1.0/\$batch" '{
-  "requests": [
-    { "id": "1", "method": "GET",  "url": "/sites/'"$SITE_ID"'/lists" },
-    { "id": "2", "method": "GET",  "url": "/sites/'"$SITE_ID"'/drive/root/children" },
-    { "id": "3", "method": "POST", "url": "/sites/'"$SITE_ID"'/lists/'"$LIST_ID"'/items",
-      "headers": { "Content-Type": "application/json" },
-      "body": { "fields": { "Title": "Batch Item" } }
-    }
-  ]
-}'
-```
-
-    requests = @(
-        @{ id = "1"; method = "GET"; url = "/sites/$siteId/lists" }
-        @{ id = "2"; method = "GET"; url = "/sites/$siteId/drive/root/children" }
-        @{ id = "3"; method = "POST"; url = "/sites/$siteId/lists/$listId/items"
-           headers = @{ "Content-Type" = "application/json" }
-           body    = @{ fields = @{ Title = "Batch Item" } }
-        }
-    )
-}
-```
-
-> **Limit:** Graph batch supports up to 20 requests per batch. SharePoint REST batch has no documented hard limit but keep changesets reasonable.
+> **Limit:** Keep changesets to a reasonable size for optimal performance.
 
 ---
 
@@ -316,20 +264,9 @@ node scripts/graph-post.js "/v1.0/\$batch" '{
 | `IF-MATCH`        | Update/delete (concurrency)| `*` (overwrite) or specific etag       |
 | `X-HTTP-Method`   | MERGE or DELETE via POST   | `MERGE` or `DELETE`                    |
 
-### Graph API
-
-| Header          | When Required  | Value                              |
-|-----------------|----------------|------------------------------------|
-| `Authorization` | Always         | `Bearer <token>`                   |
-| `Content-Type`  | POST/PATCH     | `application/json`                 |
-| `Accept`        | Recommended    | `application/json`                 |
-| `Prefer`        | Pagination     | `odata.maxpagesize=100`            |
-
 ---
 
 ## 9. URL Encoding
-
-### SharePoint REST
 
 - Spaces → `%20`
 - Single quotes inside values must be doubled: `'O''Brien'`
@@ -339,32 +276,3 @@ node scripts/graph-post.js "/v1.0/\$batch" '{
 # Encode the path argument
 node scripts/sp-get.js "/_api/web/getfilebyserverrelativeurl('/sites/my%20site/Shared%20Documents/report.docx')"
 ```
-
-
-### Graph API
-
-Standard URL encoding applies. Use `jq -rn --arg v "$VAL" '$v | @uri'` in bash for dynamic values.
-
-
----
-
-## 10. SharePoint REST vs Graph API — When to Use Which
-
-| Scenario                          | Recommended API     | Reason                                        |
-|-----------------------------------|---------------------|-----------------------------------------------|
-| List items CRUD                   | SharePoint REST     | Full field support, CAML queries               |
-| CAML queries                      | SharePoint REST     | Only available via REST                        |
-| Site features, views, content types| SharePoint REST    | Not fully exposed in Graph                     |
-| Operations needing request digest | SharePoint REST     | Native support                                 |
-| File content (download/upload)    | Graph API           | Simpler auth, resumable uploads                |
-| Search across sites               | Graph API           | Unified search experience                      |
-| User profiles                     | Graph API           | Richer user data                               |
-| Email and Teams                   | Graph API           | Only available via Graph                       |
-| Sharing and permissions           | Graph API           | Cleaner permission model                       |
-| Cross-service queries             | Graph API           | Single endpoint for M365 services              |
-
-### Quick decision
-
-- **Need list item CRUD or CAML?** → SharePoint REST (`node scripts/sp-get.js`, `node scripts/sp-post.js`)
-- **Need files, search, or cross-service data?** → Graph API (`node scripts/graph-get.js`, `node scripts/graph-post.js`)
-- **Both work?** → Prefer Graph for new development; it has broader long-term investment.

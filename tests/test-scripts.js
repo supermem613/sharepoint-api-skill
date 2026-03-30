@@ -48,7 +48,7 @@ function readScript(scriptName) {
 // 1. File existence
 // ============================================================================
 describe('File existence', () => {
-  for (const s of ['sp-get.js', 'sp-post.js', 'graph-get.js', 'graph-post.js', 'sp-auth.js']) {
+  for (const s of ['sp-get.js', 'sp-post.js', 'sp-auth.js']) {
     it(`${s} exists`, () => {
       assert.ok(existsSync(join(scriptsDir, s)), `${s} not found`);
     });
@@ -65,7 +65,7 @@ describe('File existence', () => {
 // 2. Shebang line
 // ============================================================================
 describe('Has shebang line', () => {
-  for (const s of ['sp-get.js', 'sp-post.js', 'graph-get.js', 'graph-post.js', 'sp-auth.js']) {
+  for (const s of ['sp-get.js', 'sp-post.js', 'sp-auth.js']) {
     it(`${s} has node shebang`, () => {
       const first = readScript(s).split(/\r?\n/)[0];
       assert.match(first, /node/, `${s} should have node shebang`);
@@ -92,15 +92,6 @@ describe('Error on missing arguments', () => {
     assert.notStrictEqual(r.exitCode, 0, 'Expected non-zero exit code');
   });
 
-  it('graph-get.js fails with no args', () => {
-    const r = runScript('graph-get.js');
-    assert.notStrictEqual(r.exitCode, 0, 'Expected non-zero exit code');
-  });
-
-  it('graph-post.js fails with no args', () => {
-    const r = runScript('graph-post.js');
-    assert.notStrictEqual(r.exitCode, 0, 'Expected non-zero exit code');
-  });
 });
 
 // ============================================================================
@@ -131,17 +122,6 @@ describe('Error on missing environment variables', () => {
     assert.match(r.stderr, /auth/, 'Error should mention auth');
   });
 
-  it('graph-get.js fails when GRAPH_TOKEN is missing', () => {
-    const r = runScript('graph-get.js', ['/v1.0/me']);
-    assert.notStrictEqual(r.exitCode, 0);
-    assert.match(r.stderr, /GRAPH_TOKEN/, 'Error should mention GRAPH_TOKEN');
-  });
-
-  it('graph-post.js fails when GRAPH_TOKEN is missing', () => {
-    const r = runScript('graph-post.js', ['/v1.0/me', '{}']);
-    assert.notStrictEqual(r.exitCode, 0);
-    assert.match(r.stderr, /GRAPH_TOKEN/, 'Error should mention GRAPH_TOKEN');
-  });
 });
 
 // ============================================================================
@@ -158,15 +138,6 @@ describe('Helpful error messages reference sp-auth', () => {
     assert.match(r.stderr, /sp-auth/, 'Error should reference sp-auth');
   });
 
-  it('graph-get.js error mentions auth setup', () => {
-    const r = runScript('graph-get.js', ['/v1.0/me']);
-    assert.match(r.stderr, /GRAPH_TOKEN/, 'Error should mention GRAPH_TOKEN');
-  });
-
-  it('graph-post.js error mentions auth setup', () => {
-    const r = runScript('graph-post.js', ['/v1.0/me', '{}']);
-    assert.match(r.stderr, /GRAPH_TOKEN/, 'Error should mention GRAPH_TOKEN');
-  });
 });
 
 // ============================================================================
@@ -254,17 +225,7 @@ describe('sp-post.js method override', () => {
 });
 
 // ============================================================================
-// 10. graph-post.js method override
-// ============================================================================
-describe('graph-post.js method override', () => {
-  it('accepts 3rd argument (method override)', () => {
-    const content = readScript('graph-post.js');
-    assert.match(content, /argv\[4\]/, 'graph-post.js should accept 3rd argument');
-  });
-});
-
-// ============================================================================
-// 11. sp-auth.js token extraction from browser session
+// 10. sp-auth.js token extraction from browser session
 // ============================================================================
 describe('sp-auth.js token extraction', () => {
   const content = readScript('sp-auth.js');
@@ -273,32 +234,8 @@ describe('sp-auth.js token extraction', () => {
     assert.match(content, /\.on\(['"]request['"]/, 'sp-auth.js should register request interceptor');
   });
 
-  it('captures Graph tokens from graph.microsoft.com requests', () => {
-    assert.match(content, /graph\.microsoft\.com/, 'sp-auth.js should look for Graph tokens');
-  });
-
   it('captures SP tokens from sharepoint requests', () => {
     assert.match(content, /\.sharepoint\./, 'sp-auth.js should look for SP tokens');
-  });
-
-  it('has MSAL cache scan fallback (extractMsalTokens)', () => {
-    assert.match(content, /extractMsalTokens/, 'sp-auth.js should have MSAL cache scan');
-  });
-
-  it('scans sessionStorage for access tokens', () => {
-    assert.match(content, /sessionStorage/, 'sp-auth.js should scan sessionStorage');
-  });
-
-  it('scans localStorage for access tokens', () => {
-    assert.match(content, /localStorage/, 'sp-auth.js should scan localStorage');
-  });
-
-  it('checks token expiry before using cached tokens', () => {
-    assert.match(content, /expiresOn/, 'sp-auth.js should check token expiry');
-  });
-
-  it('outputs GRAPH_TOKEN in bash format', () => {
-    assert.match(content, /GRAPH_TOKEN/, 'sp-auth.js should output GRAPH_TOKEN');
   });
 
   it('outputs SP_TOKEN in bash format', () => {
@@ -306,14 +243,13 @@ describe('sp-auth.js token extraction', () => {
   });
 
   it('does not use any external OAuth client IDs', () => {
-    // Must not contain Azure CLI or other well-known client IDs
     assert.doesNotMatch(content, /04b07795-8ddb-461a-bbee-02f9e1bf7b46/,
       'sp-auth.js must not use Azure CLI client ID');
   });
 });
 
 // ============================================================================
-// 12. sp-auth-wrapper.sh sets MSYS_NO_PATHCONV
+// 11. sp-auth-wrapper.sh sets MSYS_NO_PATHCONV
 // ============================================================================
 describe('sp-auth-wrapper.sh MSYS fix', () => {
   const content = readScript('sp-auth-wrapper.sh');
@@ -330,10 +266,10 @@ describe('sp-auth-wrapper.sh MSYS fix', () => {
 });
 
 // ============================================================================
-// 13. No external npm dependencies (require of local sp-env is OK)
+// 12. No external npm dependencies (require of local sp-env is OK)
 // ============================================================================
 describe('No external npm dependencies', () => {
-  for (const s of ['sp-get.js', 'sp-post.js', 'graph-get.js', 'graph-post.js']) {
+  for (const s of ['sp-get.js', 'sp-post.js']) {
     it(`${s} only requires local modules`, () => {
       const content = readScript(s);
       // Should not require any npm packages (only ./sp-env is allowed)

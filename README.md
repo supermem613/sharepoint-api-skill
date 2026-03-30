@@ -8,7 +8,7 @@
 
 ## What It Does
 
-This skill teaches AI coding agents to interact with any SharePoint Online site through REST and Microsoft Graph APIs — 50+ operations, zero app registration, cross-platform.
+This skill teaches AI coding agents to interact with any SharePoint Online site through the SharePoint REST API — 50+ operations, zero app registration, cross-platform.
 
 ## Capabilities
 
@@ -80,12 +80,11 @@ cd sharepoint-api-skill && npm install
 The agent authenticates automatically when the skill is invoked. Playwright launches a persistent Edge browser context that inherits Windows SSO/WAM — first run opens Edge for login (one-time), then it's instant and headless. No client ID, no tenant config, no secrets.
 
 - Credentials persist in `~/.sharepoint-api-skill/auth.json` (works across shell sessions)
-- GRAPH_TOKEN extracted automatically from the browser session
 - `--login` to force re-login, `--logout` to clear the profile
 
 ## Evals
 
-48 evals covering auth, discovery, list CRUD, files, search, users, pages, and advanced operations. Run them against any dev/test site:
+42 evals covering auth, discovery, list CRUD, files, search, users, pages, and advanced operations. Run them against any dev/test site:
 
 ```
 Run evals/run-evals.md against contoso.sharepoint.com/sites/testsite
