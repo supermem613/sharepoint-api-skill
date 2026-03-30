@@ -7,30 +7,19 @@ on:
     branches: [main]
 
 jobs:
-  test-scripts-windows:
-    name: Script Tests (Windows)
-    runs-on: windows-latest
+  test:
+    name: Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: [18, 20]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
-      - name: Run PowerShell tests
-        shell: pwsh
-        run: ./tests/test-scripts.ps1
-
-  test-scripts-linux:
-    name: Script Tests (Linux)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      - name: Make scripts executable
-        run: chmod +x .claude/skills/sharepoint-api/scripts/*.sh tests/*.sh
-      - name: Run bash tests
-        run: ./tests/test-scripts.sh
+          node-version: ${{ matrix.node-version }}
+      - run: node --test tests/test-scripts.js
 
   lint:
     name: Script Lint

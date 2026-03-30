@@ -6,6 +6,8 @@
     "sharepoint-api-skill": "./bin/cli.js"
   },
   "scripts": {
+    "test": "node --test tests/test-scripts.js",
+    "test:integration": "node --test tests/test-integration.js",
     "auth": "node .claude/skills/sharepoint-api/scripts/sp-auth.js",
     "login": "node .claude/skills/sharepoint-api/scripts/sp-auth.js --login",
     "logout": "node .claude/skills/sharepoint-api/scripts/sp-auth.js --logout"
