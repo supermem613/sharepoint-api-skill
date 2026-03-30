@@ -16,3 +16,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Eval results (generated)
+evals/results/
