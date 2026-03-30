@@ -2,14 +2,12 @@
 // Dry-run script validation — no network calls
 // Run: node --test tests/test-scripts.js
 
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { execSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+const { describe, it } = require('node:test');
+const assert = require('node:assert');
+const { execSync } = require('node:child_process');
+const { existsSync, readFileSync } = require('node:fs');
+const { join } = require('node:path');
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const scriptsDir = join(__dirname, '..', '.claude', 'skills', 'sharepoint-api', 'scripts');
 
 /**

@@ -3,13 +3,11 @@
 // Run: node --test tests/test-integration.js
 // Prereq: source sp-auth-wrapper.sh first (sets SP_COOKIES + SP_SITE)
 
-import { describe, it, after } from 'node:test';
-import assert from 'node:assert';
-import { execSync } from 'node:child_process';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+const { describe, it, after } = require('node:test');
+const assert = require('node:assert');
+const { execSync } = require('node:child_process');
+const { join } = require('node:path');
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const scriptsDir = join(__dirname, '..', '.claude', 'skills', 'sharepoint-api', 'scripts');
 
 const SP_COOKIES = process.env.SP_COOKIES;
