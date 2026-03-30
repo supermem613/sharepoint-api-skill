@@ -7,16 +7,40 @@
 **Only use these patterns.** Replace `{placeholders}` with real values.
 
 ```
-/v1.0/search/query                                           # Graph Search (POST)
-/_api/search/query?querytext='{query}'                       # SP REST Search (GET)
+/_api/search/query?querytext='{query}'                       # SP REST Search (GET) — works with cookies ✅
 /_api/search/query?querytext='{query}'&selectproperties='Title,Path'&rowlimit=25
+/v1.0/search/query                                           # Graph Search (POST) — requires GRAPH_TOKEN
 ```
 
 ---
 
-## Microsoft Graph Search API (Primary — enterprise-wide)
+## SharePoint REST Search API (Preferred — works with cookies)
 
-The Graph Search API is the modern way to search across M365 content. It provides a unified search experience across SharePoint, OneDrive, and other M365 services.
+SP REST search works with browser cookies set by `sp-auth.js`. **Use this by default** — it requires no bearer token and is always available after authentication.
+
+### Basic keyword search
+
+```bash
+node scripts/sp-get.js "/_api/search/query?querytext='budget report'&selectproperties='Title,Path,Author,LastModifiedTime'&rowlimit=25"
+```
+
+### Search within current site
+
+```bash
+node scripts/sp-get.js "/_api/search/query?querytext='budget report site:$SP_SITE'&selectproperties='Title,Path'"
+```
+
+### Search with refiners (facets)
+
+```bash
+node scripts/sp-get.js "/_api/search/query?querytext='*'&refinementfilters='FileType:equals(\"docx\")'&selectproperties='Title,Path,Size'"
+```
+
+---
+
+## Microsoft Graph Search API (Enterprise-wide — requires GRAPH_TOKEN)
+
+> **⚠️ Auth requirement:** Graph Search requires a bearer token (`GRAPH_TOKEN` with `Sites.Read.All` scope). Browser cookies do not work for Graph API calls. The `sp-auth.js` script extracts `GRAPH_TOKEN` from the browser session on a best-effort basis — it may not always be available. If `GRAPH_TOKEN` is missing, use SP REST search above instead.
 
 ### Search files across SharePoint/OneDrive
 
@@ -84,32 +108,18 @@ node scripts/graph-post.js "/v1.0/search/query" '{
 
 ## SharePoint REST Search API (Classic — site-scoped)
 
-For more granular SharePoint-specific search when you need refiners, managed properties, or site-scoped queries.
+> Already covered above as the preferred approach. Additional patterns below for reference.
 
-### Basic keyword search
+### Refiners (SP REST only)
 
-```bash
-node scripts/sp-get.js "/_api/search/query?querytext='budget report'&selectproperties='Title,Path,Author,LastModifiedTime'&rowlimit=25"
-```
-
-``    -Uri "$SpSiteUrl/_api/search/query?querytext='budget report'&selectproperties='Title,Path,Author,LastModifiedTime'&rowlimit=25" `
-    -Headers @{ Authorization = "Bearer $token"; Accept = "application/json" }
-```
-
-### Search within current site
+Request refiners to get faceted counts, then apply refinement filters:
 
 ```bash
-node scripts/sp-get.js "/_api/search/query?querytext='budget report site:$SP_SITE'&selectproperties='Title,Path'"
-```
+# Step 1 — request refiners
+node scripts/sp-get.js "/_api/search/query?querytext='*'&refiners='FileType,Author'&rowlimit=0"
 
-### Search with refiners (facets)
-
-```bash
-node scripts/sp-get.js "/_api/search/query?querytext='*'&refinementfilters='FileType:equals(\"docx\")'&selectproperties='Title,Path,Size'"
-```
-
-``    -Uri "$SpSiteUrl/_api/search/query?querytext='*'&refinementfilters='$filter'&selectproperties='Title,Path,Size'" `
-    -Headers @{ Authorization = "Bearer $token"; Accept = "application/json" }
+# Step 2 — apply a refinement filter
+node scripts/sp-get.js "/_api/search/query?querytext='*'&refinementfilters='FileType:equals(\"pptx\")'&rowlimit=25"
 ```
 
 ---

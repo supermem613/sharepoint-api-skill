@@ -112,7 +112,12 @@ node scripts/sp-post.js "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/S
   "File content here"
 ```
 
-### 8. Search for files (Graph)
+### 8. Search for files (SP REST — preferred, works with cookies)
+```bash
+node scripts/sp-get.js "/_api/search/query?querytext='budget report'&selectproperties='Title,Path,Author,LastModifiedTime'&rowlimit=10"
+```
+
+### 8b. Search for files (Graph — requires GRAPH_TOKEN)
 ```bash
 node scripts/graph-post.js "/v1.0/search/query" \
   '{"requests":[{"entityTypes":["driveItem"],"query":{"queryString":"budget report"},"size":10}]}'
@@ -130,12 +135,21 @@ node scripts/sp-get.js "/_api/web?\$select=Title,Url,Description"
 
 ## When to Use SharePoint REST vs Microsoft Graph
 
-| Use Case | API | Prefix |
-|----------|-----|--------|
-| List item CRUD, CAML queries, views, fields, content types | **SP REST** | `/_api/web/...` |
-| File content, search, email, Teams, user profiles, sharing | **Graph** | `/v1.0/...` |
-| Recycle bin, navigation, site features, request digest | **SP REST** | `/_api/web/...` |
-| OneDrive operations, cross-site file operations | **Graph** | `/v1.0/drives/...` |
+| Use Case | API | Auth | Reliability |
+|----------|-----|------|-------------|
+| List CRUD, CAML, views, fields, content types | **SP REST** | Cookies ✅ | Always works |
+| File read/write, folders | **SP REST** | Cookies ✅ | Always works |
+| Recycle bin, navigation, features, pages | **SP REST** | Cookies ✅ | Always works |
+| Search | **SP REST** (preferred) | Cookies ✅ | Always works |
+| Search (enterprise-wide) | **Graph** | Bearer token | Needs GRAPH_TOKEN |
+| User profiles, org chart | **Graph** | Bearer token | Needs GRAPH_TOKEN |
+| Email, Teams messages | **Graph** | Bearer token | Needs GRAPH_TOKEN |
+| Sharing links | **Graph** | Bearer token | Needs GRAPH_TOKEN |
+| File versions (Graph) | **Graph** | Bearer token | Needs GRAPH_TOKEN |
+
+**Prefer SP REST** for everything cookies can handle. Use Graph only when SP REST has no equivalent.
+
+> **Auth details:** `sp-auth.js` extracts `GRAPH_TOKEN` from the browser session (best-effort). It is available when MSAL tokens are cached but may not always be present or may expire after ~60 minutes. SP REST operations use browser cookies which are always available after auth. Graph API operations (search, email, Teams, sharing links) require `GRAPH_TOKEN` — if it's missing, use the SP REST alternative where one exists (e.g., `/_api/search/query` instead of Graph search).
 
 ## Reference Files
 

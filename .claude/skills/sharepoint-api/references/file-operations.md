@@ -17,7 +17,7 @@ All file and folder operations available through the SharePoint REST API and Mic
 | Share file | Share a file with a link | Graph |
 | Delete items | Delete files or folders | SP REST |
 | Search file content | Search within file content | Graph Search / SP Search |
-| Get file versions | File version history | Graph |
+| Get file versions | File version history | SP REST / Graph |
 | Restore file version | Restore a previous file version | Graph |
 | Create Word document | Create a Word document from content | Graph |
 
@@ -32,7 +32,7 @@ All file and folder operations available through the SharePoint REST API and Mic
 /_api/web/getfolderbyserverrelativeurl('{path}')/Files       # Files in folder
 /_api/web/getfolderbyserverrelativeurl('{path}')/Folders     # Subfolders
 /_api/web/getfolderbyserverrelativeurl('{path}')/Files/add(url='{name}',overwrite=true)  # Upload
-/_api/web/folders                                            # Create folder (POST)
+/_api/web/getfolderbyserverrelativeurl('{parentPath}')/folders/add('{folderName}')  # Create folder
 /v1.0/drives/{driveId}/root/children                         # Root folder contents
 /v1.0/drives/{driveId}/root:/{path}:/children                # Subfolder contents
 /v1.0/drives/{driveId}/root:/{name}:/content                 # File content (GET/PUT)
@@ -144,10 +144,13 @@ node scripts/graph-get.js "/v1.0/drives/{driveId}/items/{folderId}/children?\$se
 ### Create a folder (SP REST)
 
 ```bash
-node scripts/sp-post.js "/_api/web/folders" \
-  '{"ServerRelativeUrl":"/sites/mysite/Shared Documents/NewFolder"}'
+# Create a folder inside an existing folder using folders/add
+node scripts/sp-post.js \
+  "/_api/web/getfolderbyserverrelativeurl('/sites/mysite/Shared Documents')/folders/add('NewFolder')" \
+  ''
 ```
 
+> **Note:** `POST /_api/web/folders` with a `{"ServerRelativeUrl":"..."}` body does **not** work in SharePoint Online REST. Use the `folders/add('FolderName')` method on the parent folder instead.
 
 ### Create a folder via Graph
 
@@ -158,7 +161,7 @@ node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{parentId}/children" \
 
 ### Key notes
 
-- SP REST creates the full path; intermediate folders must already exist.
+- SP REST `folders/add` creates a single folder; intermediate folders must already exist.
 - Graph `conflictBehavior` can be `fail`, `replace`, or `rename`.
 
 ---
@@ -302,6 +305,8 @@ Set to empty string (`""`) to remove the color.
 
 ## Sharing Files
 
+> **Auth requirement:** Sharing links require the **Graph API** with a bearer token (`GRAPH_TOKEN` with `Files.ReadWrite.All` scope). There is no SP REST equivalent for creating sharing links. Cookies are not sufficient.
+
 ### Create a sharing link (Graph API)
 
 ```bash
@@ -333,20 +338,27 @@ node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{itemId}/createLink" \
 
 ## File Version History
 
-### Get version history (Graph API)
+### Get version history (SP REST — works with cookies ✅)
+
+```bash
+# File versions via SP REST (preferred — works with browser cookies)
+node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items({itemId})/versions"
+```
+
+### Get version history (Graph API — requires GRAPH_TOKEN)
 
 ```bash
 node scripts/graph-get.js "/v1.0/drives/{driveId}/items/{itemId}/versions"
 ```
 
 
-### Get a specific version's content
+### Get a specific version's content (Graph)
 
 ```bash
 node scripts/graph-get.js "/v1.0/drives/{driveId}/items/{itemId}/versions/{versionId}/content"
 ```
 
-### Restore a version
+### Restore a version (Graph)
 
 ```bash
 node scripts/graph-post.js "/v1.0/drives/{driveId}/items/{itemId}/versions/{versionId}/restoreVersion" ''

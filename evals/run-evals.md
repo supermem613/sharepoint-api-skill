@@ -61,6 +61,7 @@ After all evals, write the report to `evals/results/report.md`.
 ### 47 — Taxonomy
 **Task:** Get the term store or term sets.
 **Checks:** Used graph-get.js with /v1.0/sites/{siteId}/termStore OR sp-get.js with /_api/v2.1/termstore (requires SP_TOKEN) · Got response
+**⚠️ Env-dependent: termstore endpoint may not be available on all environments**
 
 ### 48 — Content types
 **Task:** List content types on a list.
@@ -165,10 +166,12 @@ After all evals, write the report to `evals/results/report.md`.
 ### 33 — Share file
 **Task:** Create a sharing link for a file.
 **Checks:** Used graph-post.js · Called /createLink · Got sharing URL
+**⚠️ Requires GRAPH_TOKEN with Files.ReadWrite.All scope**
 
 ### 34 — File versions
 **Task:** Get version history for a file.
 **Checks:** Used graph-get.js · Called /versions · Shows version list
+**⚠️ Requires GRAPH_TOKEN. Alternative: SP REST `/_api/web/lists(guid'{listId}')/items({itemId})/versions` works with cookies.**
 
 ---
 
@@ -177,6 +180,7 @@ After all evals, write the report to `evals/results/report.md`.
 ### 14 — Graph search
 **Task:** Search for files using Graph Search API.
 **Checks:** Used graph-post.js · Called /v1.0/search/query · Response has hits
+**⚠️ Requires GRAPH_TOKEN with Sites.Read.All scope. Alternative: eval 15 (SP REST search) works with cookies.**
 
 ### 15 — SP REST search
 **Task:** Search using SharePoint REST Search API.
@@ -201,10 +205,12 @@ After all evals, write the report to `evals/results/report.md`.
 ### 44 — Send email
 **Task:** Send a test email via Graph API.
 **Checks:** Used graph-post.js · Called /me/sendMail · Success (202)
+**⚠️ Requires GRAPH_TOKEN with Mail.Send scope**
 
 ### 45 — Send Teams message
 **Task:** Send a Teams message via Graph API.
 **Checks:** Used graph-post.js · Created chat + sent message · Success
+**⚠️ Requires GRAPH_TOKEN with Chat.ReadWrite scope**
 
 ---
 
