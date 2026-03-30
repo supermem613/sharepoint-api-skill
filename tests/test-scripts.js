@@ -16,7 +16,17 @@ const scriptsDir = join(__dirname, '..', '.claude', 'skills', 'sharepoint-api', 
  */
 function runScript(scriptName, args = [], env = {}) {
   const scriptPath = join(scriptsDir, scriptName);
-  const cleanEnv = { PATH: process.env.PATH, HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE, ...env };
+  // Use a fake HOME so sp-env.js can't load cached auth.json
+  const fakeHome = join(__dirname, '.test-home');
+  const cleanEnv = {
+    PATH: process.env.PATH,
+    HOME: fakeHome,
+    USERPROFILE: fakeHome,
+    HOMEDRIVE: fakeHome.slice(0, 2),
+    HOMEPATH: fakeHome.slice(2),
+    SystemRoot: process.env.SystemRoot || '',
+    ...env
+  };
   try {
     const stdout = execSync(`node "${scriptPath}" ${args.map(a => `"${a}"`).join(' ')}`, {
       env: cleanEnv, encoding: 'utf8', timeout: 10000, stdio: ['pipe', 'pipe', 'pipe']
@@ -106,7 +116,7 @@ describe('Error on missing environment variables', () => {
   it('sp-get.js fails when SP_TOKEN and SP_COOKIES are both missing', () => {
     const r = runScript('sp-get.js', ['/_api/web'], { SP_SITE: 'https://test.sharepoint.com' });
     assert.notStrictEqual(r.exitCode, 0);
-    assert.match(r.stderr, /SP_TOKEN|SP_COOKIES/, 'Error should mention SP_TOKEN/SP_COOKIES');
+    assert.match(r.stderr, /auth/, 'Error should mention auth');
   });
 
   it('sp-post.js fails when SP_SITE is missing', () => {
@@ -118,7 +128,7 @@ describe('Error on missing environment variables', () => {
   it('sp-post.js fails when SP_TOKEN and SP_COOKIES are both missing', () => {
     const r = runScript('sp-post.js', ['/_api/web/lists', '{}'], { SP_SITE: 'https://test.sharepoint.com' });
     assert.notStrictEqual(r.exitCode, 0);
-    assert.match(r.stderr, /SP_TOKEN|SP_COOKIES/, 'Error should mention SP_TOKEN/SP_COOKIES');
+    assert.match(r.stderr, /auth/, 'Error should mention auth');
   });
 
   it('graph-get.js fails when GRAPH_TOKEN is missing', () => {
@@ -148,14 +158,14 @@ describe('Helpful error messages reference sp-auth', () => {
     assert.match(r.stderr, /sp-auth/, 'Error should reference sp-auth');
   });
 
-  it('graph-get.js error mentions sp-auth', () => {
+  it('graph-get.js error mentions auth setup', () => {
     const r = runScript('graph-get.js', ['/v1.0/me']);
-    assert.match(r.stderr, /sp-auth/, 'Error should reference sp-auth');
+    assert.match(r.stderr, /GRAPH_TOKEN/, 'Error should mention GRAPH_TOKEN');
   });
 
-  it('graph-post.js error mentions sp-auth', () => {
+  it('graph-post.js error mentions auth setup', () => {
     const r = runScript('graph-post.js', ['/v1.0/me', '{}']);
-    assert.match(r.stderr, /sp-auth/, 'Error should reference sp-auth');
+    assert.match(r.stderr, /GRAPH_TOKEN/, 'Error should mention GRAPH_TOKEN');
   });
 });
 
@@ -254,13 +264,17 @@ describe('graph-post.js method override', () => {
 });
 
 // ============================================================================
-// 11. Zero npm dependencies
+// 11. No external npm dependencies (require of local sp-env is OK)
 // ============================================================================
-describe('Zero npm dependencies', () => {
+describe('No external npm dependencies', () => {
   for (const s of ['sp-get.js', 'sp-post.js', 'graph-get.js', 'graph-post.js']) {
-    it(`${s} has no require() calls`, () => {
+    it(`${s} only requires local modules`, () => {
       const content = readScript(s);
-      assert.doesNotMatch(content, /require\s*\(/, `${s} should not use require() — uses Node.js built-in fetch`);
+      // Should not require any npm packages (only ./sp-env is allowed)
+      const requires = content.match(/require\s*\(\s*['"]([^'"]+)['"]\s*\)/g) || [];
+      for (const r of requires) {
+        assert.match(r, /['"]\.\//, `${s} should only require local modules, found: ${r}`);
+      }
     });
   }
 });

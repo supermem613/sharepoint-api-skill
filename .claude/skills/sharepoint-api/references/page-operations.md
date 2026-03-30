@@ -11,6 +11,19 @@ Reference for SharePoint site page and news post management via REST API.
 | Generate page content | Generate page content |
 | Create text file | Create text-based files |
 
+## Valid Endpoints
+
+**Only use these patterns.** Replace `{placeholders}` with real values.
+
+```
+/_api/sitepages/pages                                        # List pages / create (GET/POST)
+/_api/sitepages/pages({pageId})                              # Single page (GET/PATCH)
+/_api/sitepages/pages({pageId})/publish                      # Publish page (POST)
+/_api/sitepages/pages({pageId})/savepage                     # Save canvas content (POST)
+/_api/web/lists/getbytitle('Site Pages')/items               # Pages as list items
+/_api/web/getfilebyserverrelativeurl('{path}')               # Page as file (DELETE)
+```
+
 ---
 
 ## Reading Pages

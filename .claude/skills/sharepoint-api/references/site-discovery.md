@@ -16,6 +16,28 @@
 | Get user info | User resolution (person fields, current user) |
 | Get location info | Location field resolution |
 
+## Valid Endpoints
+
+**Only use these patterns.** Replace `{placeholders}` with real values.
+
+```
+/_api/web                                                    # Site info
+/_api/web?$select=Title,Url,Description                      # Site info (selected fields)
+/_api/web/lists                                              # All lists
+/_api/web/lists?$filter=Hidden eq false                      # Non-hidden lists
+/_api/web/lists(guid'{listId}')                              # Single list
+/_api/web/lists(guid'{listId}')/fields                       # List columns
+/_api/web/lists(guid'{listId}')/contenttypes                 # Content types
+/_api/web/siteusers                                          # Site users
+/_api/web/currentuser                                        # Current user
+/_api/v2.1/termstore                                         # Taxonomy term store
+/_api/v2.1/termstore/groups/{groupId}/sets                   # Term sets
+/_api/v2.1/termstore/sets/{setId}/terms                      # Terms
+/v1.0/sites/{hostname}:{path}                                # Resolve site ID (Graph)
+/v1.0/sites/{siteId}/lists                                   # Lists via Graph
+/v1.0/sites/{siteId}/drives                                  # Document libraries (Graph)
+```
+
 ---
 
 ## Discovering All Lists and Libraries

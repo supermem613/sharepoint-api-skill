@@ -21,6 +21,28 @@ All file and folder operations available through the SharePoint REST API and Mic
 | Restore file version | Restore a previous file version | Graph |
 | Create Word document | Create a Word document from content | Graph |
 
+## Valid Endpoints
+
+**Only use these patterns.** Replace `{placeholders}` with real values.
+
+```
+/_api/web/getfilebyserverrelativeurl('{path}')               # File metadata
+/_api/web/getfilebyserverrelativeurl('{path}')/$value        # File content (text)
+/_api/web/getfilebyserverrelativeurl('{path}')/moveto(newurl='{dest}',flags=1)  # Move
+/_api/web/getfolderbyserverrelativeurl('{path}')/Files       # Files in folder
+/_api/web/getfolderbyserverrelativeurl('{path}')/Folders     # Subfolders
+/_api/web/getfolderbyserverrelativeurl('{path}')/Files/add(url='{name}',overwrite=true)  # Upload
+/_api/web/folders                                            # Create folder (POST)
+/v1.0/drives/{driveId}/root/children                         # Root folder contents
+/v1.0/drives/{driveId}/root:/{path}:/children                # Subfolder contents
+/v1.0/drives/{driveId}/root:/{name}:/content                 # File content (GET/PUT)
+/v1.0/drives/{driveId}/items/{itemId}                        # File metadata / delete
+/v1.0/drives/{driveId}/items/{itemId}/content                # File content
+/v1.0/drives/{driveId}/items/{itemId}/versions               # File versions
+/v1.0/drives/{driveId}/items/{itemId}/createLink             # Share file (POST)
+/v1.0/drives/{driveId}/items/{itemId}/copy                   # Copy file (POST)
+```
+
 ---
 
 ## Reading Files

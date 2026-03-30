@@ -26,6 +26,26 @@ Reference for all list-related SharePoint REST API operations.
 | Apply view formatting | Format a view |
 | Apply column formatting | Format a column |
 
+## Valid Endpoints
+
+**Only use these patterns.** Replace `{placeholders}` with real values.
+
+```
+/_api/web/lists                                              # All lists
+/_api/web/lists?$filter=Hidden eq false                      # Non-hidden lists
+/_api/web/lists(guid'{listId}')                              # Single list
+/_api/web/lists(guid'{listId}')/items                        # List items (GET/POST)
+/_api/web/lists(guid'{listId}')/items({itemId})              # Single item (GET/PATCH/DELETE)
+/_api/web/lists(guid'{listId}')/items?$select=X&$top=N       # Filtered/paged items
+/_api/web/lists(guid'{listId}')/fields                       # List columns
+/_api/web/lists(guid'{listId}')/fields?$filter=Hidden eq false  # Non-hidden columns
+/_api/web/lists(guid'{listId}')/views                        # List views
+/_api/web/lists(guid'{listId}')/views(guid'{viewId}')        # Single view
+/_api/web/lists(guid'{listId}')/contenttypes                 # Content types
+/_api/web/lists/getbytitle('{title}')/GetItems               # CAML query (POST)
+/_api/$batch                                                 # Batch operations (POST)
+```
+
 ---
 
 ## Getting List Items

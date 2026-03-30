@@ -11,6 +11,26 @@ Reference for operations that resolve users, share content, and send messages.
 | Send email | Send email via Microsoft Graph |
 | Send Teams message | Send Teams chat message via Microsoft Graph |
 
+## Valid Endpoints
+
+**Only use these patterns.** Replace `{placeholders}` with real values.
+
+```
+/_api/web/currentuser                                        # Current user
+/_api/web/siteusers                                          # All site users
+/_api/web/siteusers?$filter=Email eq '{email}'               # Resolve email to user ID
+/_api/web/siteusers/getbyid({userId})                        # User by ID
+/_api/web/roleassignments                                    # Permissions
+/v1.0/me                                                     # Current user (Graph)
+/v1.0/users?$search="displayName:{name}"                     # Search users (Graph)
+/v1.0/drives/{driveId}/items/{itemId}/createLink             # Share file (Graph POST)
+/v1.0/drives/{driveId}/items/{itemId}/invite                 # Share with people (Graph POST)
+/v1.0/drives/{driveId}/items/{itemId}/permissions            # Check permissions (Graph)
+/v1.0/me/sendMail                                            # Send email (Graph POST)
+/v1.0/chats                                                  # Create Teams chat (Graph POST)
+/v1.0/chats/{chatId}/messages                                # Send message (Graph POST)
+```
+
 ---
 
 ## User Resolution

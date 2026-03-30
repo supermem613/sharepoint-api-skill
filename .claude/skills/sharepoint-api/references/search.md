@@ -2,6 +2,16 @@
 
 > **Operations covered:** Enterprise file search, list item search, semantic search, content search, item filtering
 
+## Valid Endpoints
+
+**Only use these patterns.** Replace `{placeholders}` with real values.
+
+```
+/v1.0/search/query                                           # Graph Search (POST)
+/_api/search/query?querytext='{query}'                       # SP REST Search (GET)
+/_api/search/query?querytext='{query}'&selectproperties='Title,Path'&rowlimit=25
+```
+
 ---
 
 ## Microsoft Graph Search API (Primary — enterprise-wide)

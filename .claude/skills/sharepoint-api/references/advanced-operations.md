@@ -31,6 +31,23 @@ Advanced SharePoint operations covering rules, workflows, recycle bin, approvals
 | Filter retirable documents | Filter retirable documents | SP REST |
 | Reorder navigation | Reorder site navigation nodes | SP REST |
 
+## Valid Endpoints
+
+**Only use these patterns.** Replace `{placeholders}` with real values.
+
+```
+/_api/web/recyclebin                                         # Recycle bin items
+/_api/web/recyclebin/restorebyids                            # Restore items (POST)
+/_api/web/recyclebin/deletebyids                             # Permanent delete (POST)
+/_api/web/lists(guid'{listId}')/SPListRules                  # List rules (GET/POST)
+/_api/web/lists(guid'{listId}')/SPListRules({ruleId})        # Single rule (DELETE)
+/_api/web/navigation/quicklaunch                             # Quick launch nav
+/_api/web/navigation/topnavigationbar                        # Top nav
+/_api/web/features                                           # Site features
+/_api/web/features/add('{featureGuid}',true)                 # Activate feature (POST)
+/_api/web/features/remove('{featureGuid}',true)              # Deactivate feature (POST)
+```
+
 ---
 
 ## Recycle Bin
