@@ -114,9 +114,6 @@ Not supported. Email sending, Teams messaging, and sharing links require the Mic
 | Delete from recycle bin | SP REST | POST | `/_api/web/recyclebin/deletebyids` | advanced-operations.md |
 | Get deleted lists | SP REST | GET | `/_api/web/recyclebin?$filter=ItemType eq 3` | advanced-operations.md |
 | Restore deleted list | SP REST | POST | `/_api/web/recyclebin('{id}')/restore` | advanced-operations.md |
-| Get list rules | SP REST | GET | `/_api/web/lists(guid'{id}')/SPListRules` | advanced-operations.md |
-| Create/update rule | SP REST | POST/PATCH | `/_api/web/lists(guid'{id}')/SPListRules` | advanced-operations.md |
-| Delete rule | SP REST | DELETE | `/_api/web/lists(guid'{id}')/SPListRules('{ruleId}')` | advanced-operations.md |
 | Get quicksteps | SP REST | GET | `/_api/web/lists(guid'{id}')/QuickSteps` | advanced-operations.md |
 | Create/update quickstep | SP REST | POST/PATCH | `/_api/web/lists(guid'{id}')/QuickSteps` | advanced-operations.md |
 | Delete quickstep | SP REST | DELETE | `/_api/web/lists(guid'{id}')/QuickSteps('{stepId}')` | advanced-operations.md |
@@ -141,4 +138,4 @@ Not supported. Email sending, Teams messaging, and sharing links require the Mic
 | UI-only operations (navigate, preview) | No browser at runtime | Not needed for CLI agents |
 | Server-side code execution | Sandboxed environment | Agent runs code locally |
 | NL-to-CAML generation | Redundant — the agent IS an LLM | Generate CAML directly using patterns in `api-patterns.md` |
-| Full Power Automate management | Requires Power Automate Management API | Use SP REST for simple rules; PA API for flows |
+| Full Power Automate management | Requires Power Automate Management API | Use PA Management API for flow operations |

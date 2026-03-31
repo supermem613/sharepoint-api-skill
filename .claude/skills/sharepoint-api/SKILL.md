@@ -162,7 +162,7 @@ Load these on demand for detailed API documentation on specific domains:
 | [`references/site-discovery.md`](references/site-discovery.md) | Lists, fields, views, content types, user resolution |
 | [`references/page-operations.md`](references/page-operations.md) | Site pages, news posts, page content |
 | [`references/user-permissions.md`](references/user-permissions.md) | Users, permissions |
-| [`references/advanced-operations.md`](references/advanced-operations.md) | Rules, recycle bin, approvals, workflows, eSignature |
+| [`references/advanced-operations.md`](references/advanced-operations.md) | Recycle bin, approvals, workflows, navigation, eSignature |
 | [`references/api-patterns.md`](references/api-patterns.md) | Pagination, $select/$filter, CAML, error handling, batch |
 
 ## What This Skill Can't Do (and alternatives)

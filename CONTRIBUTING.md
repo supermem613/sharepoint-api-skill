@@ -106,7 +106,7 @@ The 8 files in `references/` are loaded on demand when the agent needs domain-sp
 | `site-discovery.md` | Site properties, lists, fields, content types |
 | `page-operations.md` | Modern pages, news posts |
 | `user-permissions.md` | Users, permissions, role assignments |
-| `advanced-operations.md` | Rules, recycle bin, navigation, features |
+| `advanced-operations.md` | Recycle bin, navigation, features |
 | `api-patterns.md` | OData, $select/$filter, CAML, batch, pagination |
 
 When adding a new operation: add it to the appropriate reference file, add a row to `docs/api-coverage.md`, and if it's common enough, add it to the quick reference in `SKILL.md`.
@@ -120,7 +120,7 @@ Evals live in `evals/run-evals.md`. Each eval has:
 - A pass condition
 - Cleanup instructions (if the eval creates data)
 
-All test data must be prefixed with `SHAREPOINT_API_SKILL_EVAL_` so it's identifiable and cleanable. Evals that depend on environment-specific features (e.g., rules) should be marked `env-dependent` and scored as PARTIAL when unavailable.
+All test data must be prefixed with `SHAREPOINT_API_SKILL_EVAL_` so it's identifiable and cleanable.
 
 ## Code Style
 

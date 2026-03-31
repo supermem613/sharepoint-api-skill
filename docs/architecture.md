@@ -60,7 +60,7 @@ Agent loads SKILL.md (~2K tokens)
             ├─ site-discovery.md (lists, fields, content types)
             ├─ page-operations.md (pages, news)
             ├─ user-permissions.md (users, permissions)
-            ├─ advanced-operations.md (rules, recycle bin)
+            ├─ advanced-operations.md (recycle bin, navigation)
             └─ api-patterns.md (pagination, $filter, CAML)
 ```
 
@@ -86,7 +86,7 @@ Agent loads SKILL.md (~2K tokens)
 | `user-permissions.md` | Users, permissions |
 | `site-discovery.md` | Site properties, lists, fields, content types |
 | `api-patterns.md` | OData, batching, throttling, CAML |
-| `advanced-operations.md` | Rules, recycle bin, navigation, features |
+| `advanced-operations.md` | Recycle bin, navigation, features |
 
 ### Design Decisions Log
 

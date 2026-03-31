@@ -1,14 +1,11 @@
 # SharePoint API Reference: Advanced Operations
 
-Advanced SharePoint operations covering rules, workflows, recycle bin, approvals, navigation, quicksteps, eSignature, and document lifecycle management.
+Advanced SharePoint operations covering workflows, recycle bin, approvals, navigation, quicksteps, eSignature, and document lifecycle management.
 
 ## Operations Covered
 
 | Operation | Purpose | Primary API |
 |-----------|---------|-------------|
-| Get rules | List rules/automation on a list | SP REST |
-| Create/update rule | Create or update a list rule | SP REST |
-| Delete rule | Delete a list rule | SP REST |
 | Get workflows | List Power Automate flows for a list | Power Automate |
 | Create workflow | Create a Power Automate flow | Power Automate |
 | Toggle workflow | Enable or disable a flow | Power Automate |
@@ -39,8 +36,6 @@ Advanced SharePoint operations covering rules, workflows, recycle bin, approvals
 /_api/web/recyclebin                                         # Recycle bin items
 /_api/web/recyclebin/restorebyids                            # Restore items (POST)
 /_api/web/recyclebin/deletebyids                             # Permanent delete (POST)
-/_api/web/lists(guid'{listId}')/SPListRules                  # List rules (GET/POST)
-/_api/web/lists(guid'{listId}')/SPListRules({ruleId})        # Single rule (DELETE)
 /_api/web/navigation/quicklaunch                             # Quick launch nav
 /_api/web/navigation/topnavigationbar                        # Top nav
 /_api/web/features                                           # Site features
@@ -103,63 +98,6 @@ node scripts/sp-post.js "/_api/web/recyclebin('guid')/restore" ''
 - `ItemType eq 3` filters recycle bin to list items only.
 - Restoring a list also restores its items, views, and metadata.
 - If the original list URL is occupied (e.g., a new list with the same name was created), the restore may fail with a `409` conflict.
-
----
-
-## Rules (SharePoint List Rules)
-
-SharePoint list rules provide simple automation for email notifications and other actions triggered by list events.
-
-### Get rules for a list
-
-```
-node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/SPListRules"
-```
-
-
-### Create a rule
-
-```
-node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/SPListRules" '{
-  "Title": "Notify on new items",
-  "TriggerType": "ItemAdded",
-  "ActionType": "EmailNotification",
-  "Condition": "",
-  "IsActive": true
-}'
-```
-
-
-### Update a rule
-
-```
-node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/SPListRules({ruleId})" '{
-  "Title": "Updated rule name",
-  "IsActive": false
-}' PATCH
-```
-
-
-### Delete a rule
-
-```
-node scripts/sp-post.js "/_api/web/lists(guid'{listId}')/SPListRules({ruleId})" '' DELETE
-```
-
-
-### Trigger types
-
-| TriggerType | Description |
-|-------------|-------------|
-| `ItemAdded` | Fires when a new item is created |
-| `ItemUpdated` | Fires when an item is modified |
-| `ItemDeleted` | Fires when an item is deleted |
-
-### Key notes
-
-- Rules are a lightweight alternative to Power Automate flows for simple notifications.
-- `Condition` uses a JSON-based filter format to scope which items trigger the rule.
-- Rules are scoped per-list and require list owner permissions to create or modify.
 
 ---
 
@@ -398,9 +336,9 @@ node scripts/sp-get.js "/_api/web/lists(guid'{listId}')/items?\$filter=ContentTy
 ### Error handling
 
 All SP REST calls may return:
-- `400` — malformed request (invalid rule condition, bad quickstep definition)
+- `400` — malformed request (bad quickstep definition, invalid condition)
 - `403` — insufficient permissions (most advanced operations require owner-level access)
-- `404` — resource not found (deleted rule, missing list, expired recycle bin item)
+- `404` — resource not found (missing list, expired recycle bin item)
 - `409` — conflict (restoring a list when the URL is already occupied)
 
 ### Permission requirements
@@ -409,7 +347,6 @@ All SP REST calls may return:
 |-----------|-------------------|
 | Recycle bin (view) | Site member |
 | Recycle bin (restore/delete) | Site owner |
-| Rules (CRUD) | List owner |
 | Navigation (modify) | Site owner / Site designer |
 | Features (activate/deactivate) | Site collection admin |
 | Retention labels (apply) | Site member + compliance role |

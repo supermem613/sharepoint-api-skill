@@ -111,7 +111,7 @@ function safeDelete(endpoint) {
 }
 
 // ============================================================================
-// Connectivity check  (eval 01)
+// Connectivity check
 // ============================================================================
 console.log(`\n\ud83d\udd0c Checking connectivity to ${auth.SP_SITE} ...`);
 let webInfo;
@@ -211,10 +211,10 @@ console.log(` Prefix: ${TEST_PREFIX}`);
 console.log('\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n');
 
 // ============================================================================
-// Site Info  (evals 01, 04)
+// Site Info
 // ============================================================================
 describe('Site Info', () => {
-  it('01/04 \u2014 Get web info \u2014 Title and Url present', () => {
+  it('Get web info \u2014 Title and Url present', () => {
     const web = spGetJson('/_api/web?$select=Title,Url,Description');
     assert.ok(web.Title, 'Missing Title');
     assert.ok(web.Url, 'Missing Url');
@@ -228,10 +228,10 @@ describe('Site Info', () => {
 });
 
 // ============================================================================
-// Discovery  (evals 02-05)
+// Discovery
 // ============================================================================
 describe('Discovery', () => {
-  it('02 \u2014 Discover lists \u2014 value array with items', () => {
+  it('Discover lists \u2014 value array with items', () => {
     const lists = spGetJson("/_api/web/lists?$filter=Hidden eq false&$select=Id,Title,ItemCount,BaseTemplate");
     assert.ok(Array.isArray(lists.value), 'No value array in response');
     assert.ok(lists.value.length > 0, 'value array is empty');
@@ -242,14 +242,14 @@ describe('Discovery', () => {
     }
   });
 
-  it('03 \u2014 Get list schema \u2014 fields have TypeAsString', { skip: !listCreated && 'No temp list' }, () => {
+  it('Get list schema \u2014 fields have TypeAsString', { skip: !listCreated && 'No temp list' }, () => {
     const fields = spGetJson(`/_api/web/lists(guid'${testListId}')/fields?$filter=Hidden eq false&$select=Title,InternalName,TypeAsString`);
     assert.ok(Array.isArray(fields.value), 'No value array');
     assert.ok(fields.value.length > 0, 'No visible fields');
     assert.ok(fields.value[0].TypeAsString, 'Missing TypeAsString');
   });
 
-  it('05 \u2014 Content types on list', { skip: !listCreated && 'No temp list' }, () => {
+  it('Content types on list', { skip: !listCreated && 'No temp list' }, () => {
     const ct = spGetJson(`/_api/web/lists(guid'${testListId}')/contenttypes?$select=Name,Id`);
     assert.ok(Array.isArray(ct.value), 'No value array');
     assert.ok(ct.value.length > 0, 'No content types');
@@ -258,14 +258,14 @@ describe('Discovery', () => {
 });
 
 // ============================================================================
-// List Item CRUD  (evals 05, 06, 07, 08, 09, 20, 28)
+// List Item CRUD
 // ============================================================================
 describe('List Item CRUD', () => {
   let testItemId = null;
   const testItemTitle = `${TEST_PREFIX}_Item`;
   const testItemTitleUpdated = `${TEST_PREFIX}_Updated`;
 
-  it('07 \u2014 Create a list item', { skip: !listCreated && 'No temp list' }, () => {
+  it('Create a list item', { skip: !listCreated && 'No temp list' }, () => {
     const body = JSON.stringify({ __metadata: { type: entityType }, Title: testItemTitle });
     const created = spPost(`/_api/web/lists(guid'${testListId}')/items`, body);
     testItemId = created?.Id;
@@ -278,7 +278,7 @@ describe('List Item CRUD', () => {
     assert.strictEqual(item.Title, testItemTitle, `Title mismatch: expected '${testItemTitle}', got '${item.Title}'`);
   });
 
-  it('08 \u2014 Update the item', { skip: !listCreated && 'No temp list' }, () => {
+  it('Update the item', { skip: !listCreated && 'No temp list' }, () => {
     assert.ok(testItemId, 'Skipped \u2014 no item created');
     const body = JSON.stringify({ __metadata: { type: entityType }, Title: testItemTitleUpdated });
     spPost(`/_api/web/lists(guid'${testListId}')/items(${testItemId})`, body, 'PATCH');
@@ -290,19 +290,19 @@ describe('List Item CRUD', () => {
     assert.strictEqual(item.Title, testItemTitleUpdated);
   });
 
-  it('06 \u2014 Read items from list', { skip: !listCreated && 'No temp list' }, () => {
+  it('Read items from list', { skip: !listCreated && 'No temp list' }, () => {
     const items = spGetJson(`/_api/web/lists(guid'${testListId}')/items?$select=Title,Id&$top=5`);
     assert.ok(Array.isArray(items.value), 'No value array');
     assert.ok(items.value.length > 0, 'No items found');
   });
 
-  it('10 \u2014 Filter items', { skip: !listCreated && 'No temp list' }, () => {
+  it('Filter items', { skip: !listCreated && 'No temp list' }, () => {
     const items = spGetJson(`/_api/web/lists(guid'${testListId}')/items?$filter=Id gt 0&$select=Title,Id&$top=3`);
     assert.ok(Array.isArray(items.value), 'No value array');
     assert.ok(items.value.length > 0, 'Filter returned no items');
   });
 
-  it('11 \u2014 CAML query via GetItems', { skip: !listCreated && 'No temp list' }, () => {
+  it('CAML query via GetItems', { skip: !listCreated && 'No temp list' }, () => {
     // Create a dedicated item for the CAML query
     const camlItemBody = JSON.stringify({ __metadata: { type: entityType }, Title: `${TEST_PREFIX}_CAML` });
     const camlItem = spPost(`/_api/web/lists(guid'${testListId}')/items`, camlItemBody);
@@ -310,24 +310,19 @@ describe('List Item CRUD', () => {
       const camlBody = JSON.stringify({
         query: {
           __metadata: { type: 'SP.CamlQuery' },
-          ViewXml: '<View><Query><Where><Gt><FieldRef Name="Id" /><Value Type="Integer">0</Value></Gt></Where></Query><RowLimit>3</RowLimit></View>'
+          ViewXml: '<View><RowLimit>3</RowLimit></View>'
         }
       });
       const result = spPost(`/_api/web/lists(guid'${testListId}')/GetItems`, camlBody);
       assert.ok(result, 'Empty CAML response');
-    } catch (e) {
-      // Some environments return 500 "field types not installed" on freshly created lists
-      if (e.message && e.message.includes('field types are not installed')) {
-        console.log('   (CAML skipped \u2014 field type issue on this environment)');
-        return;
-      }
-      throw e;
+      assert.ok(Array.isArray(result.value), 'No value array in CAML response');
+      assert.ok(result.value.length > 0, 'CAML returned 0 items (expected at least 1)');
     } finally {
       if (camlItem?.Id) safeDelete(`/_api/web/lists(guid'${testListId}')/items(${camlItem.Id})`);
     }
   });
 
-  it('19 \u2014 Item version history', { skip: !listCreated && 'No temp list' }, () => {
+  it('Item version history', { skip: !listCreated && 'No temp list' }, () => {
     assert.ok(testItemId, 'Skipped \u2014 no item created');
     const versions = spGetJson(`/_api/web/lists(guid'${testListId}')/items(${testItemId})/versions?$select=VersionLabel`);
     assert.ok(Array.isArray(versions.value), 'No value array');
@@ -335,7 +330,7 @@ describe('List Item CRUD', () => {
     assert.ok(versions.value[0].VersionLabel, 'Missing VersionLabel');
   });
 
-  it('09 \u2014 Delete the item', { skip: !listCreated && 'No temp list' }, () => {
+  it('Delete the item', { skip: !listCreated && 'No temp list' }, () => {
     assert.ok(testItemId, 'Skipped \u2014 no item created');
     spPost(`/_api/web/lists(guid'${testListId}')/items(${testItemId})`, '', 'DELETE');
   });
@@ -350,7 +345,7 @@ describe('List Item CRUD', () => {
 });
 
 // ============================================================================
-// List Columns  (evals 21, 22)
+// List Columns
 // ============================================================================
 describe('List Columns', () => {
   const colName = `${TEST_PREFIX}_Column`;
@@ -362,7 +357,7 @@ describe('List Columns', () => {
     }
   });
 
-  it('12 \u2014 Add column', { skip: !listCreated && 'No temp list' }, () => {
+  it('Add column', { skip: !listCreated && 'No temp list' }, () => {
     const body = JSON.stringify({
       __metadata: { type: 'SP.Field' },
       Title: colName,
@@ -379,7 +374,7 @@ describe('List Columns', () => {
     assert.strictEqual(field.Title, colName);
   });
 
-  it('13 \u2014 Delete column', { skip: !listCreated && 'No temp list' }, () => {
+  it('Delete column', { skip: !listCreated && 'No temp list' }, () => {
     assert.ok(columnCreated, 'Skipped \u2014 column not created');
     spPost(`/_api/web/lists(guid'${testListId}')/fields/getbytitle('${colName}')`, '', 'DELETE');
     columnCreated = false;
@@ -387,7 +382,7 @@ describe('List Columns', () => {
 });
 
 // ============================================================================
-// List Views  (evals 19, 23, 24, 25)
+// List Views
 // ============================================================================
 describe('List Views', () => {
   const viewName = `${TEST_PREFIX}_View`;
@@ -400,13 +395,13 @@ describe('List Views', () => {
     }
   });
 
-  it('37 \u2014 List views for the temp list', { skip: !listCreated && 'No temp list' }, () => {
+  it('List views for the temp list', { skip: !listCreated && 'No temp list' }, () => {
     const views = spGetJson(`/_api/web/lists(guid'${testListId}')/views?$select=Title,Id,ServerRelativeUrl`);
     assert.ok(Array.isArray(views.value), 'No value array');
     assert.ok(views.value.length > 0, 'No views found (every list has at least one)');
   });
 
-  it('14 \u2014 Create view', { skip: !listCreated && 'No temp list' }, () => {
+  it('Create view', { skip: !listCreated && 'No temp list' }, () => {
     const body = JSON.stringify({
       __metadata: { type: 'SP.View' },
       Title: viewName,
@@ -418,7 +413,7 @@ describe('List Views', () => {
     assert.ok(viewId, 'No view Id returned');
   });
 
-  it('15 \u2014 Update view', { skip: !listCreated && 'No temp list' }, () => {
+  it('Update view', { skip: !listCreated && 'No temp list' }, () => {
     assert.ok(viewId, 'Skipped \u2014 no view created');
     const body = JSON.stringify({
       __metadata: { type: 'SP.View' },
@@ -428,7 +423,7 @@ describe('List Views', () => {
     spPost(`/_api/web/lists(guid'${testListId}')/views(guid'${viewId}')`, body, 'PATCH');
   });
 
-  it('16 \u2014 Delete view', { skip: !listCreated && 'No temp list' }, () => {
+  it('Delete view', { skip: !listCreated && 'No temp list' }, () => {
     assert.ok(viewId, 'Skipped \u2014 no view created');
     spPost(`/_api/web/lists(guid'${testListId}')/views(guid'${viewId}')`, '', 'DELETE');
     viewId = null;
@@ -436,7 +431,7 @@ describe('List Views', () => {
 });
 
 // ============================================================================
-// Column Formatting  (eval 29)
+// Column Formatting
 // ============================================================================
 describe('Column Formatting', () => {
   let formattingApplied = false;
@@ -450,7 +445,7 @@ describe('Column Formatting', () => {
     }
   });
 
-  it('20 \u2014 Apply column formatting and revert', { skip: !listCreated && 'No temp list' }, () => {
+  it('Apply column formatting and revert', { skip: !listCreated && 'No temp list' }, () => {
     const formatter = JSON.stringify({ elmType: 'div', txtContent: '@currentField' });
     const body = JSON.stringify({ __metadata: { type: 'SP.Field' }, CustomFormatter: formatter });
     spPost(`/_api/web/lists(guid'${testListId}')/fields/getbytitle('Title')`, body, 'PATCH');
@@ -464,7 +459,7 @@ describe('Column Formatting', () => {
 });
 
 // ============================================================================
-// List Lifecycle  (evals 26, 27)
+// List Lifecycle
 // ============================================================================
 describe('List Lifecycle', () => {
   const lcListTitle = `${TEST_PREFIX}_Lifecycle`;
@@ -476,7 +471,7 @@ describe('List Lifecycle', () => {
     }
   });
 
-  it('17 \u2014 Create list', () => {
+  it('Create list', () => {
     const body = JSON.stringify({
       __metadata: { type: 'SP.List' },
       Title: lcListTitle,
@@ -487,7 +482,7 @@ describe('List Lifecycle', () => {
     assert.ok(lcListId, 'No list Id returned');
   });
 
-  it('18 \u2014 Delete list', () => {
+  it('Delete list', () => {
     assert.ok(lcListId, 'Skipped \u2014 no list created');
     spPost(`/_api/web/lists(guid'${lcListId}')`, '', 'DELETE');
     lcListId = null;
@@ -495,7 +490,7 @@ describe('List Lifecycle', () => {
 });
 
 // ============================================================================
-// File Operations  (evals 10, 11, 12, 13)
+// File Operations
 // ============================================================================
 describe('File Operations', () => {
   const testFileName = `${TEST_PREFIX}_testfile.txt`;
@@ -509,24 +504,24 @@ describe('File Operations', () => {
     }
   });
 
-  it('22 \u2014 List files in document library', { skip: !docLibCreated && 'No temp doc lib' }, () => {
+  it('List files in document library', { skip: !docLibCreated && 'No temp doc lib' }, () => {
     const files = spGetJson(`/_api/web/getfolderbyserverrelativeurl('${docLibRelative}')/files?$select=Name,Length&$top=10`);
     assert.ok(Array.isArray(files.value), "No 'value' array in response");
   });
 
-  it('21 \u2014 Upload a test file', { skip: !docLibCreated && 'No temp doc lib' }, () => {
+  it('Upload a test file', { skip: !docLibCreated && 'No temp doc lib' }, () => {
     const encodedName = encodeURIComponent(testFileName);
     spPost(`/_api/web/getfolderbyserverrelativeurl('${docLibRelative}')/Files/add(url='${encodedName}',overwrite=true)`, testFileContent);
     uploaded = true;
   });
 
-  it('23 \u2014 Read file content back', { skip: !docLibCreated && 'No temp doc lib' }, () => {
+  it('Read file content back', { skip: !docLibCreated && 'No temp doc lib' }, () => {
     if (!uploaded) { console.log('   (skipped \u2014 file not uploaded)'); return; }
     const content = spGet(`/_api/web/getfilebyserverrelativeurl('${docLibRelative}/${testFileName}')/$value`);
     assert.ok(content.includes(TEST_PREFIX), `Content mismatch \u2014 expected to contain '${TEST_PREFIX}'`);
   });
 
-  it('24 \u2014 Delete file', { skip: !docLibCreated && 'No temp doc lib' }, () => {
+  it('Delete file', { skip: !docLibCreated && 'No temp doc lib' }, () => {
     if (!uploaded) { console.log('   (skipped \u2014 file not uploaded)'); return; }
     spPost(`/_api/web/getfilebyserverrelativeurl('${docLibRelative}/${testFileName}')`, '', 'DELETE');
     deleted = true;
@@ -534,7 +529,7 @@ describe('File Operations', () => {
 });
 
 // ============================================================================
-// Folder Operations  (evals 30, 31)
+// Folder Operations
 // ============================================================================
 describe('Folder Operations', () => {
   const folderName = `${TEST_PREFIX}_Folder`;
@@ -551,12 +546,12 @@ describe('Folder Operations', () => {
     }
   });
 
-  it('25 \u2014 Create folder', { skip: !docLibCreated && 'No temp doc lib' }, () => {
+  it('Create folder', { skip: !docLibCreated && 'No temp doc lib' }, () => {
     spPost(`/_api/web/getfolderbyserverrelativeurl('${docLibRelative}')/folders/add('${folderName}')`, '');
     folderCreated = true;
   });
 
-  it('26 \u2014 Rename folder', { skip: !docLibCreated && 'No temp doc lib' }, () => {
+  it('Rename folder', { skip: !docLibCreated && 'No temp doc lib' }, () => {
     if (!folderCreated) { console.log('   (skipped \u2014 folder not created)'); return; }
     const body = JSON.stringify({ __metadata: { type: 'SP.Folder' }, Name: renamedName });
     spPost(`/_api/web/getfolderbyserverrelativeurl('${docLibRelative}/${folderName}')`, body, 'PATCH');
@@ -565,7 +560,7 @@ describe('Folder Operations', () => {
 });
 
 // ============================================================================
-// File Move  (eval 32)
+// File Move
 // ============================================================================
 describe('File Move', () => {
   const moveFileName = `${TEST_PREFIX}_moveme.txt`;
@@ -576,7 +571,7 @@ describe('File Move', () => {
     safeDelete(`/_api/web/getfilebyserverrelativeurl('${docLibRelative}/${moveFileName}')`);
   });
 
-  it('27 \u2014 Move file', { skip: !docLibCreated && 'No temp doc lib' }, () => {
+  it('Move file', { skip: !docLibCreated && 'No temp doc lib' }, () => {
     // Upload source file
     const encodedName = encodeURIComponent(moveFileName);
     spPost(`/_api/web/getfolderbyserverrelativeurl('${docLibRelative}')/Files/add(url='${encodedName}',overwrite=true)`, 'move test');
@@ -591,10 +586,10 @@ describe('File Move', () => {
 });
 
 // ============================================================================
-// Search  (eval 15)
+// Search
 // ============================================================================
 describe('Search', () => {
-  it('28 \u2014 SP REST search', () => {
+  it('SP REST search', () => {
     // Search for our test prefix \u2014 verifies the API call works.
     // Note: search indexing may take minutes, so we just verify the response structure.
     const result = spGetJson(`/_api/search/query?querytext='${TEST_PREFIX}'&rowlimit=1`);
@@ -606,10 +601,10 @@ describe('Search', () => {
 });
 
 // ============================================================================
-// Users & Permissions  (evals 16, 17, 43)
+// Users & Permissions
 // ============================================================================
 describe('Users & Permissions', () => {
-  it('29 \u2014 Current user \u2014 Id, Title, Email, LoginName', () => {
+  it('Current user \u2014 Id, Title, Email, LoginName', () => {
     const user = spGetJson('/_api/web/currentuser?$select=Title,Email,Id,LoginName');
     assert.ok(user.Id, 'Missing Id');
     assert.ok(user.Title, 'Missing Title');
@@ -617,13 +612,13 @@ describe('Users & Permissions', () => {
     assert.ok(user.LoginName, 'Missing LoginName');
   });
 
-  it('30 \u2014 List site users', () => {
+  it('List site users', () => {
     const users = spGetJson('/_api/web/siteusers?$select=Title,Email,Id&$top=5');
     assert.ok(Array.isArray(users.value), 'No value array');
     assert.ok(users.value.length > 0, 'No users found');
   });
 
-  it('31 \u2014 Role assignments (permissions)', () => {
+  it('Role assignments (permissions)', () => {
     const raw = spGet('/_api/web/roleassignments?$expand=Member,RoleDefinitionBindings&$top=5');
     assert.ok(
       raw.includes('PrincipalId') || raw.includes('RoleDefinitionBindings'),
@@ -633,7 +628,7 @@ describe('Users & Permissions', () => {
 });
 
 // ============================================================================
-// Pages  (evals 35, 36, 37, 38)
+// Pages
 // ============================================================================
 describe('Pages', () => {
   const pageTitle = `${TEST_PREFIX}_Page`;
@@ -646,7 +641,7 @@ describe('Pages', () => {
     }
   });
 
-  it('32 \u2014 Create page and publish', () => {
+  it('Create page and publish', () => {
     const body = JSON.stringify({
       __metadata: { type: 'SP.Publishing.SitePage' },
       Title: pageTitle,
@@ -660,7 +655,7 @@ describe('Pages', () => {
     spPost(`/_api/sitepages/pages(${pageId})/publish`, '');
   });
 
-  it('33 \u2014 List pages (verify test page appears)', () => {
+  it('List pages (verify test page appears)', () => {
     const pages = spGetJson('/_api/sitepages/pages?$select=Title,FileName,Id&$top=50');
     assert.ok(Array.isArray(pages.value), 'No value array');
     if (pageId) {
@@ -669,7 +664,7 @@ describe('Pages', () => {
     }
   });
 
-  it('34 \u2014 Edit page', () => {
+  it('Edit page', () => {
     assert.ok(pageId, 'Skipped \u2014 no page created');
     // Wait for SP to finalize the page
     sleep(3000);
@@ -696,7 +691,7 @@ describe('Pages', () => {
     }
   });
 
-  it('35 \u2014 Delete page', () => {
+  it('Delete page', () => {
     assert.ok(pageId, 'Skipped \u2014 no page created');
     spPost(`/_api/sitepages/pages(${pageId})`, '', 'DELETE');
     pageId = null;
@@ -704,55 +699,20 @@ describe('Pages', () => {
 });
 
 // ============================================================================
-// Advanced  (evals 18, 39, 40, 41, 42)
+// Advanced
 // ============================================================================
 describe('Advanced', () => {
-  // Probe rules endpoint availability
-  let rulesAvailable = false;
-  if (listCreated) {
-    try {
-      spGetJson(`/_api/web/lists(guid'${testListId}')/SPListRules`);
-      rulesAvailable = true;
-    } catch {}
-  }
-  let ruleId = null;
-
-  after(() => {
-    if (ruleId) {
-      safeDelete(`/_api/web/lists(guid'${testListId}')/SPListRules(${ruleId})`);
-    }
-  });
-
-  it('36 \u2014 Recycle bin', () => {
+  it('Recycle bin', () => {
     const bin = spGetJson('/_api/web/recyclebin?$top=5&$select=Title,ItemType,DeletedDate');
     assert.ok(Array.isArray(bin.value), 'No value array');
   });
 
-  it('38 \u2014 Create rule', { skip: (!listCreated && 'No temp list') || (!rulesAvailable && 'SPListRules endpoint not available') }, () => {
-    const body = JSON.stringify({
-      Condition: '<condition/>',
-      ActionType: 'Custom',
-      ActionParams: '{"action":"noop"}',
-      TriggerType: 'OnNewItem',
-      Title: `${TEST_PREFIX}_Rule`
-    });
-    const result = spPost(`/_api/web/lists(guid'${testListId}')/SPListRules`, body);
-    ruleId = result?.Id;
-    assert.ok(ruleId, 'No rule Id returned');
-  });
-
-  it('39 \u2014 Delete rule', { skip: (!listCreated && 'No temp list') || (!rulesAvailable && 'SPListRules endpoint not available') }, () => {
-    assert.ok(ruleId, 'Skipped \u2014 no rule created');
-    spPost(`/_api/web/lists(guid'${testListId}')/SPListRules(${ruleId})`, '', 'DELETE');
-    ruleId = null;
-  });
-
-  it('40 \u2014 Navigation (quicklaunch)', () => {
+  it('Navigation (quicklaunch)', () => {
     const nav = spGetJson('/_api/web/navigation/quicklaunch?$select=Title,Url,Id');
     assert.ok(Array.isArray(nav.value), 'No value array');
   });
 
-  it('41 \u2014 Site features', () => {
+  it('Site features', () => {
     const features = spGetJson('/_api/web/features?$select=DefinitionId,DisplayName');
     assert.ok(Array.isArray(features.value), 'No value array');
   });

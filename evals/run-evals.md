@@ -1,6 +1,6 @@
 # SharePoint API Skill — Evals
 
-41 evals against a SharePoint site. Each eval shows the exact command to run.
+Evals against a SharePoint site. Each eval shows the exact command to run.
 
 ## How to Run
 
@@ -89,25 +89,20 @@ These are issues discovered through multiple eval runs. Following these rules av
 
 2. **Search querytext must be URL-encoded.** `querytext='...'` with literal single quotes causes HTTP 500. Use `%27` instead: `querytext=%27test%27`.
 
-3. **CAML GetItems may 500 on freshly created lists.** SP returns "field types not installed" on brand-new lists. Score ⚠️ PARTIAL (not FAIL) if this occurs. The 500 error to stderr is expected — do not treat it as a failure.
-
-4. **Page edit returns 409 after publish.** `PATCH` to `/_api/sitepages/pages({id})` returns 409 "editing session ended". This is expected. **Fallback:** update via Site Pages list item with MERGE:
+3. **Page edit returns 409 after publish.** `PATCH` to `/_api/sitepages/pages({id})` returns 409 "editing session ended". This is expected. **Fallback:** update via Site Pages list item with MERGE:
    ```
    node scripts/sp-post.js "/_api/web/lists/getbytitle('Site Pages')/items($PAGE_ID)" '{"__metadata":{"type":"SP.Data.SitePagesItem"},"Title":"SHAREPOINT_API_SKILL_EVAL_PAGE_UPDATED"}' MERGE
    ```
    Score ✅ PASS if the MERGE fallback succeeds. The 409 error from the PATCH attempt is noise — ignore it.
 
-5. **SPListRules may return 404.** Not all environments have this endpoint. Score ⚠️ PARTIAL on 404.
+4. **Cleanup errors are expected.** Move-file cleanup, folder cleanup, and other teardown steps may produce 404 errors when the resource was already deleted or moved. These are expected — ignore all errors from cleanup commands.
 
-6. **Cleanup errors are expected.** Move-file cleanup, folder cleanup, and other teardown steps may produce 404 errors when the resource was already deleted or moved. These are expected — ignore all errors from cleanup commands.
-
-7. **Response `Id` field casing varies.** SP REST returns `Id` (PascalCase) for most objects, but some endpoints return `id` (lowercase) or `ID` (uppercase). When extracting IDs from responses, check all three casings: `obj.Id || obj.id || obj.ID`.
+5. **Response `Id` field casing varies.** SP REST returns `Id` (PascalCase) for most objects, but some endpoints return `id` (lowercase) or `ID` (uppercase). When extracting IDs from responses, check all three casings: `obj.Id || obj.id || obj.ID`.
 
 ## Scoring
 
 For each eval: run the command, check the pass condition.
 - ✅ **PASS** — command succeeded and pass condition met
-- ⚠️ **PARTIAL** — env-dependent endpoint not available (noted on eval) or known SP behavior on fresh resources
 - ❌ **FAIL** — command failed or pass condition not met
 
 After all evals, write the report to `evals/results/report.md`.
@@ -167,10 +162,10 @@ After all evals, write the report to `evals/results/report.md`.
 **Run:** `node scripts/sp-get.js "/_api/web/lists(guid'$LIST_ID')/items?$filter=Id gt 0&$select=Title,Id&$top=3"`
 **Pass if:** stdout contains `"value"` array
 
-### 11 — CAML query ⚠️ may partial on fresh lists
+### 11 — CAML query
 **Setup:** Create a test item first: `node scripts/sp-post.js "/_api/web/lists(guid'$LIST_ID')/items" '{"__metadata":{"type":"$ENTITY_TYPE"},"Title":"SHAREPOINT_API_SKILL_EVAL_CAML"}'` Save item ID as `CAML_ITEM_ID`.
-**Run:** `node scripts/sp-post.js "/_api/web/lists(guid'$LIST_ID')/GetItems" '{"query":{"__metadata":{"type":"SP.CamlQuery"},"ViewXml":"<View><Query><Where><Gt><FieldRef Name=\"Id\" /><Value Type=\"Integer\">0</Value></Gt></Where></Query><RowLimit>3</RowLimit></View>"}}'`
-**Pass if:** stdout contains items (JSON array). Score ⚠️ PARTIAL if stderr contains "field types are not installed" — this is a known SP issue on freshly created lists, not a skill failure.
+**Run:** `node scripts/sp-post.js "/_api/web/lists(guid'$LIST_ID')/GetItems" '{"query":{"__metadata":{"type":"SP.CamlQuery"},"ViewXml":"<View><RowLimit>3</RowLimit></View>"}}'`
+**Pass if:** stdout contains items (JSON array with at least 1 item)
 **Cleanup:** `node scripts/sp-post.js "/_api/web/lists(guid'$LIST_ID')/items($CAML_ITEM_ID)" '' DELETE`
 
 ### 12 — Add column
@@ -322,7 +317,7 @@ After all evals, write the report to `evals/results/report.md`.
 
 ---
 
-## Advanced (6)
+## Advanced (4)
 
 ### 36 — Recycle bin
 **Run:** `node scripts/sp-get.js "/_api/web/recyclebin?$top=5&$select=Title,ItemType,DeletedDate"`
@@ -332,21 +327,11 @@ After all evals, write the report to `evals/results/report.md`.
 **Run:** `node scripts/sp-get.js "/_api/web/lists(guid'$LIST_ID')/views?$select=Title,Id,ServerRelativeUrl"`
 **Pass if:** stdout contains `"value"` array with at least 1 view
 
-### 38 — Create rule ⚠️ env-dependent
-**Run:** `node scripts/sp-post.js "/_api/web/lists(guid'$LIST_ID')/SPListRules" '{"Condition":"<condition/>","ActionType":"Custom","ActionParams":"{\"action\":\"noop\"}","TriggerType":"OnNewItem","Title":"SHAREPOINT_API_SKILL_EVAL_RULE"}'`
-**Pass if:** stdout contains `"Id"`. **Save rule ID as `RULE_ID`.** Score ⚠️ PARTIAL if 404 (endpoint not available on this environment).
-
-### 39 — Delete rule ⚠️ env-dependent
-**Depends on:** 38
-**Run:** `node scripts/sp-post.js "/_api/web/lists(guid'$LIST_ID')/SPListRules($RULE_ID)" '' DELETE`
-**Pass if:** no error. Score ⚠️ PARTIAL if eval 38 was PARTIAL (endpoint unavailable).
-**Cleanup:** This IS the cleanup for 38.
-
-### 40 — Navigation
+### 38 — Navigation
 **Run:** `node scripts/sp-get.js "/_api/web/navigation/quicklaunch?$select=Title,Url,Id"`
 **Pass if:** stdout contains `"value"` array
 
-### 41 — Site features
+### 39 — Site features
 **Run:** `node scripts/sp-get.js "/_api/web/features?$select=DefinitionId,DisplayName"`
 **Pass if:** stdout contains `"value"` array
 
@@ -360,20 +345,20 @@ After completing all evals, write `evals/results/report.md`:
 # Eval Report — [date]
 
 **Site:** [site URL]
-**Overall:** [passed]/41 ([percentage]%) — [partial] partial, [failed] failed
+**Overall:** [passed]/39 ([percentage]%) — [failed] failed
 
 ## Summary
 
-| Category         | Pass | Partial | Fail | Total |
-|------------------|------|---------|------|-------|
-| Auth             |      |         |      | 1     |
-| Discovery        |      |         |      | 4     |
-| List CRUD        |      |         |      | 15    |
-| Files            |      |         |      | 7     |
-| Search           |      |         |      | 1     |
-| Users            |      |         |      | 3     |
-| Pages            |      |         |      | 4     |
-| Advanced         |      |         |      | 6     |
+| Category         | Pass | Fail | Total |
+|------------------|------|------|-------|
+| Auth             |      |       | 1     |
+| Discovery        |      |       | 4     |
+| List CRUD        |      |       | 15    |
+| Files            |      |       | 7     |
+| Search           |      |       | 1     |
+| Users            |      |       | 3     |
+| Pages            |      |       | 4     |
+| Advanced         |      |      | 4     |
 
 ## Results
 
@@ -416,11 +401,9 @@ After completing all evals, write `evals/results/report.md`:
 | 35 | Delete page           |       |       |
 | 36 | Recycle bin           |       |       |
 | 37 | List views            |       |       |
-| 38 | Create rule           |       |       |
-| 39 | Delete rule           |       |       |
-| 40 | Navigation            |       |       |
-| 41 | Site features         |       |       |
+| 38 | Navigation            |       |       |
+| 39 | Site features         |       |       |
 
-## Failures & Partials
-[Details for any ❌ or ⚠️ — include error message and whether it's env-dependent]
+## Failures
+[Details for any ❌]
 ```
