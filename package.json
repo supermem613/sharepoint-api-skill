@@ -2,10 +2,7 @@
   "name": "sharepoint-api-skill",
   "version": "1.0.0",
   "description": "AI skill for SharePoint API automation — works with Claude Code, GitHub Copilot, and Codex",
-  "bin": {
-    "sharepoint-api-skill": "./bin/cli.js"
-  },
-  "scripts": {
+  "scripts":{
     "test": "node --test tests/test-scripts.js",
     "test:integration": "node --test tests/test-integration.js",
     "auth": "node .claude/skills/sharepoint-api/scripts/sp-auth.js",
