@@ -8,7 +8,7 @@
 
 ## What It Does
 
-This skill teaches AI coding agents to interact with any SharePoint Online site through the SharePoint REST API — 50+ operations, zero app registration, cross-platform.
+This skill teaches AI coding agents to interact with any SharePoint Online site through the SharePoint REST APIs: 50+ operations, zero app registration, cross-platform.
 
 ## Capabilities
 
@@ -69,7 +69,7 @@ This skill teaches AI coding agents to interact with any SharePoint Online site 
 
 ### Manual
 
-```
+```bash
 git clone https://github.com/supermem613/sharepoint-api-skill
 cd sharepoint-api-skill && npm install
 ```
@@ -83,9 +83,9 @@ The agent authenticates automatically when the skill is invoked. Playwright laun
 
 ## Evals
 
-42 evals covering auth, discovery, list CRUD, files, search, users, pages, and advanced operations. Run them against any dev/test site:
+Thorough evals covering auth, discovery, list CRUD, files, search, users, pages, and advanced operations. Run them against any dev/test site:
 
-```
+```claude
 Run evals/run-evals.md against contoso.sharepoint.com/sites/testsite
 ```
 
@@ -95,7 +95,7 @@ Results are written to `evals/results/report.md`. See [`evals/run-evals.md`](eva
 
 ## Tests
 
-```
+```bash
 npm test                    # Static tests (no network)
 npm run test:integration    # Live API tests (requires auth)
 ```
