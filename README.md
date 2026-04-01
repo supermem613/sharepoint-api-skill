@@ -1,6 +1,6 @@
 # SharePoint API Skill
 
-**AI-powered SharePoint for Claude Code, GitHub Copilot, and Codex**
+**AI-powered SharePoint for Claude Code, GitHub Copilot CLI, and other AI coding agents**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -59,6 +59,18 @@ This skill teaches AI coding agents to interact with any SharePoint Online site 
 - *"Create a new list called 'Project Tracker'"*
 - *"Delete the list named Episodes"*
 
+## Test Drive
+
+Clone the repo and take it for a spin:
+
+```bash
+git clone https://github.com/supermem613/sharepoint-api-skill
+cd sharepoint-api-skill && npm install
+copilot   # or: claude
+```
+
+Try: *"List all lists on contoso.sharepoint.com/sites/mysite"*
+
 ## Install
 
 ### Claude Code
@@ -67,12 +79,27 @@ This skill teaches AI coding agents to interact with any SharePoint Online site 
 /install supermem613/sharepoint-api-skill
 ```
 
-### Manual
+### Copilot CLI / Other AI Coding Agents
+
+Copy the skill directory into your project and install Playwright:
+
+**macOS / Linux:**
 
 ```bash
-git clone https://github.com/supermem613/sharepoint-api-skill
-cd sharepoint-api-skill && npm install
+git clone https://github.com/supermem613/sharepoint-api-skill /tmp/sharepoint-api-skill
+cp -r /tmp/sharepoint-api-skill/.claude/skills/sharepoint-api .claude/skills/
+npm install playwright
 ```
+
+**Windows (PowerShell):**
+
+```powershell
+git clone https://github.com/supermem613/sharepoint-api-skill $env:TEMP\sharepoint-api-skill
+Copy-Item -Recurse $env:TEMP\sharepoint-api-skill\.claude\skills\sharepoint-api .claude\skills\
+npm install playwright
+```
+
+The skill is auto-discovered from `.claude/skills/`. Run `/skills list` in Copilot CLI to verify.
 
 ## Auth
 
