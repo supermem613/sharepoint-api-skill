@@ -1,6 +1,6 @@
 ---
 name: sharepoint-api
-description: "Interact with any SharePoint site via REST API. Covers lists, files, search, pages, users, and more."
+description: "Interact with any SharePoint site via REST API — lists, files, search, pages, users, and more. Use when you need to read or modify SharePoint data programmatically without a browser, automate site operations, or query SharePoint content from scripts."
 metadata:
   author: "Marcus Markiewicz"
   version: "1.0"
