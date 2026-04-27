@@ -177,4 +177,4 @@ Load these on demand for detailed API documentation on specific domains:
 | UI-only actions (`navigate_to_url`, `preview_view_changes`) | Require a browser | Not needed for CLI agents |
 | Server-side code execution | Sandboxed environment | Run code locally |
 | Complex multi-step orchestration (doc-from-chat, template-finder) | Internal workflow services | Compose the individual API calls yourself |
-| NL-to-CAML query generation | Redundant — you ARE an LLM | Generate CAML directly using the patterns in `api-patterns.md` |
+| NL-to-CAML query generation | Redundant — you ARE an LLM | Generate CAML directly using the patterns in [`references/api-patterns.md`](references/api-patterns.md) |
