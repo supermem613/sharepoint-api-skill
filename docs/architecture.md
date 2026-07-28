@@ -79,7 +79,7 @@ Reference files provide background REST details only after a capability has been
 | Auth boundary | `sp-api auth` only | Prevents Playwright from entering REST hot path |
 | Raw HTTP fallback | Not supported | Missing coverage should become a semantic verb |
 | Output | JSON envelope | Stable machine-readable agent contract |
-| Self-update | `sp-api update` | Git-clone installs can pull, install, and rebuild in one command |
+| Self-update | `sp-api update` | Git-clone installs auto-detect soda vs git, then pull, install, and rebuild in one command |
 | Session filesystem | Not folded in | `sp-api` keeps stateless semantic verbs; loopback sessions and raw template execution stay outside the contract |
 
 ### What This CLI Cannot Do

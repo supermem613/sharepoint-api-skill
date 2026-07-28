@@ -167,7 +167,7 @@ npm test
 npm run test:integration
 ```
 
-`npm run build` validates generated artifacts and the `sp-api` bin before local linking or publishing. `npm link` and `npm run link:local` are supported for local development. For linked or git-clone installs, `sp-api update` pulls with `git pull --ff-only`, skips install/build when already current, and otherwise runs `npm install --no-audit --no-fund` plus `npm run build`.
+`npm run build` validates generated artifacts and the `sp-api` bin before local linking or publishing. `npm link` and `npm run link:local` are supported for local development. For linked or git-clone installs, `sp-api update` auto-detects soda-managed checkouts and pulls with `sd pull` there, otherwise pulls with `git pull --ff-only`. It skips install/build when already current, and otherwise runs `npm install --no-audit --no-fund` plus `npm run build`.
 
 `npm test` covers the `sp-api` registry, schema generation, help generation, JSON envelopes, SharePoint auth/REST internals, no raw fallback, auth isolation, package bin wiring, and SKILL router sync.
 

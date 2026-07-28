@@ -74,7 +74,7 @@ npm run test:integration
 
 `npm run build` validates that generated artifacts match the registry and that the `sp-api` bin is wired correctly. `npm run link:local` runs the build and then `npm link` for local CLI development.
 
-Use `sp-api update` from linked or git-clone installs to self-update. It runs `git pull --ff-only`, skips install and build when already current, and otherwise runs `npm install --no-audit --no-fund` plus `npm run build`.
+Use `sp-api update` from linked or git-clone installs to self-update. It auto-detects soda-managed checkouts and pulls with `sd pull` there, otherwise pulls with `git pull --ff-only`. It skips install and build when already current, and otherwise runs `npm install --no-audit --no-fund` plus `npm run build`.
 
 `npm test` must stay fast and offline. It validates the `sp-api` CLI contract and its built-in auth/REST modules.
 

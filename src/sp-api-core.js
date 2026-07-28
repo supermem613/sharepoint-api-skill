@@ -249,6 +249,39 @@ function gitPullMadeNoChanges(output) {
   return /already up[- ]to[- ]date\.?/i.test(output);
 }
 
+function commandOutput(result) {
+  return `${result.stdout || ''}${result.stderr || ''}`.trim();
+}
+
+// soda's git-interlock hooks block raw git writes in an sd-powered repo, and
+// soda tracks stream state a raw `git pull` bypasses, so a soda-managed
+// checkout must self-update through `sd`. `initialized: true` is the
+// authoritative signal: a plain git repo that `sd` can merely read reports
+// false, and anything that cannot answer stays on git.
+function isSodaManagedRepo(cwd, run) {
+  try {
+    const status = run('sd', ['status'], cwd);
+    if (status.status !== 0) return false;
+    const envelope = JSON.parse(status.stdout || '');
+    return envelope.ok === true && envelope.data?.summary?.initialized === true;
+  } catch {
+    return false;
+  }
+}
+
+function sodaEnvelopeErrorMessage(envelope, fallback) {
+  if (!envelope?.error) return fallback;
+  return typeof envelope.error === 'string' ? envelope.error : JSON.stringify(envelope.error);
+}
+
+function parseJsonEnvelope(stdout) {
+  try {
+    return JSON.parse(stdout || '');
+  } catch {
+    return null;
+  }
+}
+
 function runCommand(command, args, cwd, deps = {}) {
   const options = {
     cwd,
@@ -257,12 +290,17 @@ function runCommand(command, args, cwd, deps = {}) {
   };
   const nodeExecutable = deps.nodeExecutable || process.execPath;
   const resolveNpm = deps.resolveNpmCliPath || (() => resolveNpmCliPath(nodeExecutable));
+  const spawn = deps.spawnSync || spawnSync;
 
   if (process.platform === 'win32' && /^npm(?:\.cmd)?$/i.test(command)) {
     const npmCli = resolveNpm();
-    if (npmCli) return spawnSync(nodeExecutable, [npmCli, ...args], options);
+    if (npmCli) return spawn(nodeExecutable, [npmCli, ...args], options);
   }
-  return spawnSync(command, args, options);
+  if (process.platform === 'win32' && /^sd(?:\.cmd)?$/i.test(command)) {
+    // sd is an npm .cmd shim on Windows, and spawnSync cannot execute those directly.
+    return spawn('cmd.exe', ['/d', '/s', '/c', command, ...args], options);
+  }
+  return spawn(command, args, options);
 }
 
 function resolveNpmCliPath(nodeExecutable = process.execPath) {
@@ -298,18 +336,43 @@ function selfUpdate(deps = {}) {
     };
   }
 
-  const pull = run('git', ['pull', '--ff-only'], root);
-  const pullOutput = `${pull.stdout || ''}${pull.stderr || ''}`.trim();
-  steps.push({ name: 'git pull --ff-only', ok: pull.status === 0, output: pullOutput });
-  if (pull.status !== 0) {
-    return {
-      ok: false,
-      data: { repoRoot: root, steps },
-      error: { code: 'GIT_PULL_FAILED', message: pullOutput || 'git pull --ff-only failed' },
-    };
-  }
-  if (gitPullMadeNoChanges(pullOutput)) {
-    return { ok: true, data: { repoRoot: root, updated: false, steps } };
+  if (isSodaManagedRepo(root, run)) {
+    const pull = run('sd', ['pull'], root);
+    const pullOutput = commandOutput(pull);
+    const pullEnvelope = parseJsonEnvelope(pull.stdout);
+    const pullOk = pull.status === 0 && pullEnvelope?.ok === true;
+    steps.push({ name: 'sd pull', ok: pullOk, output: pullOutput });
+    if (!pullOk) {
+      return {
+        ok: false,
+        data: { repoRoot: root, steps },
+        error: { code: 'SD_PULL_FAILED', message: sodaEnvelopeErrorMessage(pullEnvelope, pullOutput || 'sd pull failed') },
+      };
+    }
+    if (!Array.isArray(pullEnvelope.data)) {
+      return {
+        ok: false,
+        data: { repoRoot: root, steps },
+        error: { code: 'SD_PULL_FAILED', message: 'sd pull returned invalid data' },
+      };
+    }
+    if (!pullEnvelope.data.some(outcome => outcome.worktreeUpdated === true)) {
+      return { ok: true, data: { repoRoot: root, updated: false, steps } };
+    }
+  } else {
+    const pull = run('git', ['pull', '--ff-only'], root);
+    const pullOutput = `${pull.stdout || ''}${pull.stderr || ''}`.trim();
+    steps.push({ name: 'git pull --ff-only', ok: pull.status === 0, output: pullOutput });
+    if (pull.status !== 0) {
+      return {
+        ok: false,
+        data: { repoRoot: root, steps },
+        error: { code: 'GIT_PULL_FAILED', message: pullOutput || 'git pull --ff-only failed' },
+      };
+    }
+    if (gitPullMadeNoChanges(pullOutput)) {
+      return { ok: true, data: { repoRoot: root, updated: false, steps } };
+    }
   }
 
   const install = run('npm', ['install', '--no-audit', '--no-fund'], root);

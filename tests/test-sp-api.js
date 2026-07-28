@@ -729,12 +729,13 @@ describe('update command', () => {
       isGitRepo: () => true,
       runCommand: (command, args) => {
         commands.push(`${command} ${args.join(' ')}`);
+        if (command === 'sd') return { status: 1, stdout: '', stderr: '' };
         return { status: 0, stdout: 'Already up to date.\n', stderr: '' };
       },
     });
     assert.strictEqual(result.ok, true);
     assert.strictEqual(result.data.updated, false);
-    assert.deepStrictEqual(commands, ['git pull --ff-only']);
+    assert.deepStrictEqual(commands, ['sd status', 'git pull --ff-only']);
   });
 
   it('runs install and build when git pull returns changes', () => {
@@ -744,16 +745,137 @@ describe('update command', () => {
       isGitRepo: () => true,
       runCommand: (command, args) => {
         commands.push(`${command} ${args.join(' ')}`);
+        if (command === 'sd') return { status: 1, stdout: '', stderr: '' };
         return { status: 0, stdout: command === 'git' ? 'Fast-forward\n' : 'ok\n', stderr: '' };
       },
     });
     assert.strictEqual(result.ok, true);
     assert.strictEqual(result.data.updated, true);
     assert.deepStrictEqual(commands, [
+      'sd status',
       'git pull --ff-only',
       'npm install --no-audit --no-fund',
       'npm run build',
     ]);
+  });
+
+  it('pulls with sd when the install repo is soda-managed and worktree changes', () => {
+    const calls = [];
+    const result = selfUpdate({
+      repoRoot,
+      isGitRepo: () => true,
+      runCommand: (command, args) => {
+        calls.push({ command, args });
+        if (command === 'sd' && args[0] === 'status') {
+          return { status: 0, stdout: JSON.stringify({ ok: true, data: { summary: { initialized: true } } }), stderr: '' };
+        }
+        if (command === 'sd' && args[0] === 'pull') {
+          return { status: 0, stdout: JSON.stringify({ ok: true, data: [{ status: 'up-to-date', worktreeUpdated: false }, { status: 'updated', worktreeUpdated: true }] }), stderr: '' };
+        }
+        return { status: 0, stdout: 'ok\n', stderr: '' };
+      },
+    });
+    assert.strictEqual(result.ok, true);
+    assert.strictEqual(result.data.updated, true);
+    assert.deepStrictEqual(calls.map(call => `${call.command} ${call.args.join(' ')}`), [
+      'sd status',
+      'sd pull',
+      'npm install --no-audit --no-fund',
+      'npm run build',
+    ]);
+    assert.strictEqual(calls.some(call => call.command === 'git' && call.args.join(' ') === 'pull --ff-only'), false);
+  });
+
+  it('skips install and build when sd pull leaves the worktree unchanged', () => {
+    const calls = [];
+    const result = selfUpdate({
+      repoRoot,
+      isGitRepo: () => true,
+      runCommand: (command, args) => {
+        calls.push({ command, args });
+        if (command === 'sd' && args[0] === 'status') {
+          return { status: 0, stdout: JSON.stringify({ ok: true, data: { summary: { initialized: true } } }), stderr: '' };
+        }
+        if (command === 'sd' && args[0] === 'pull') {
+          return { status: 0, stdout: JSON.stringify({ ok: true, data: [{ status: 'up-to-date', worktreeUpdated: false }] }), stderr: '' };
+        }
+        return { status: 0, stdout: 'ok\n', stderr: '' };
+      },
+    });
+    assert.strictEqual(result.ok, true);
+    assert.strictEqual(result.data.updated, false);
+    assert.deepStrictEqual(calls.map(call => `${call.command} ${call.args.join(' ')}`), ['sd status', 'sd pull']);
+  });
+
+  it('falls back to git pull when sd status does not prove soda management', () => {
+    const cases = [
+      { name: 'ok false', result: { status: 0, stdout: JSON.stringify({ ok: false, error: 'not initialized' }), stderr: '' } },
+      { name: 'unparseable stdout', result: { status: 0, stdout: 'not json', stderr: '' } },
+      { name: 'non-zero status', result: { status: 1, stdout: '', stderr: 'sd not found' } },
+    ];
+
+    for (const scenario of cases) {
+      const calls = [];
+      const result = selfUpdate({
+        repoRoot,
+        isGitRepo: () => true,
+        runCommand: (command, args) => {
+          calls.push({ command, args });
+          if (command === 'sd' && args[0] === 'status') return scenario.result;
+          if (command === 'git') return { status: 0, stdout: 'Already up to date.\n', stderr: '' };
+          return { status: 0, stdout: 'ok\n', stderr: '' };
+        },
+      });
+      assert.strictEqual(result.ok, true, scenario.name);
+      assert.strictEqual(result.data.updated, false, scenario.name);
+      assert.ok(
+        calls.some(call => call.command === 'git' && call.args.join(' ') === 'pull --ff-only'),
+        scenario.name,
+      );
+    }
+  });
+
+  it('surfaces sd pull failures without running install or build', () => {
+    const calls = [];
+    const result = selfUpdate({
+      repoRoot,
+      isGitRepo: () => true,
+      runCommand: (command, args) => {
+        calls.push({ command, args });
+        if (command === 'sd' && args[0] === 'status') {
+          return { status: 0, stdout: JSON.stringify({ ok: true, data: { summary: { initialized: true } } }), stderr: '' };
+        }
+        if (command === 'sd' && args[0] === 'pull') {
+          return { status: 1, stdout: JSON.stringify({ ok: false, error: 'stream conflict' }), stderr: '' };
+        }
+        return { status: 0, stdout: 'ok\n', stderr: '' };
+      },
+    });
+    assert.strictEqual(result.ok, false);
+    assert.strictEqual(result.error.code, 'SD_PULL_FAILED');
+    assert.strictEqual(result.error.message, 'stream conflict');
+    assert.deepStrictEqual(calls.map(call => `${call.command} ${call.args.join(' ')}`), ['sd status', 'sd pull']);
+  });
+
+  it('executes sd through cmd.exe on Windows', () => {
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, 'platform');
+    const calls = [];
+
+    try {
+      Object.defineProperty(process, 'platform', { value: 'win32' });
+      const result = runCommand('sd', ['pull'], repoRoot, {
+        spawnSync: (command, args, options) => {
+          calls.push({ command, args, options });
+          return { status: 0, stdout: '', stderr: '' };
+        },
+      });
+      assert.strictEqual(result.status, 0);
+      assert.strictEqual(calls[0].command, 'cmd.exe');
+      assert.deepStrictEqual(calls[0].args, ['/d', '/s', '/c', 'sd', 'pull']);
+      assert.strictEqual(calls[0].options.cwd, repoRoot);
+    } finally {
+      Object.defineProperty(process, 'platform', platformDescriptor);
+    }
   });
 
   it('executes npm via node + npm-cli.js on Windows', () => {
